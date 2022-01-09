@@ -1,0 +1,1 @@
+DIVIDEND_FILE_CSV = "data/DIVIDENDS.csv"
