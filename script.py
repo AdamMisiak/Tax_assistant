@@ -7,11 +7,16 @@ def open_csv_file():
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
-            print(row)
-            # rows.append(row)
-    # print(header)
-    # print(rows)
+            rows.append(row[0].replace('"', "").split(';'))
+        return rows
+
+# def get_dividends_from_report(report: list):
+#     for div in report:
+#         single_dividend = {}
+#         print(div)
+#         single_dividend['name'] = div[]
 
 
 if __name__ == '__main__':
-    open_csv_file()
+    report = open_csv_file()
+    # get_dividends_from_report(report)
