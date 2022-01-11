@@ -22,8 +22,14 @@ def get_dividends_from_report(report: list):
             divs_only_report.append(single_dividend)
     return divs_only_report
 
+def calculate_tax_to_pay(dividends_report):
+    pass
+
+def get_currency_rate(currency: str, date: str):
+    pass
+
 
 if __name__ == '__main__':
     report = open_csv_file()
-    divs_only_report = get_dividends_from_report(report)
-    print(divs_only_report)
+    dividends_report = get_dividends_from_report(report)
+    print(dividends_report)
