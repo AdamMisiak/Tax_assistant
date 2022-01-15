@@ -46,13 +46,13 @@ def get_currency_rate(currency: str, date: str):
     date = date.strftime('%Y-%m-%d')
     url = settings.URL_BASE + date
     response = requests.get(url, {'format': 'api'})
+    print(response.status_code)
     # while response.status_code == 404: #this day is holiday/weekend, take previous day 
     #     date_in_datetime_format = date_in_datetime_format - datetime.timedelta(days=1)
     #     date_in_string_format = date_in_datetime_format.strftime('%Y-%m-%d')
 
     #     url = settings.URL_BASE + date_in_string_format
     #     response = requests.get(url, {'format': 'api'})
-
     for rate in response.json()[0]['rates']:
         if rate['code'] == currency:
             result = rate['mid']
@@ -63,6 +63,9 @@ def get_currency_rate(currency: str, date: str):
 if __name__ == '__main__':
     report = open_csv_file()
     dividends_report = get_dividends_from_report(report)
-    # print(dividends_report)
-    get_currency_rate("USD", get_previous_day_from_date(dividends_report[0]['date']))
-    # print(get_previous_day_from_date(dividends_report[0]['date']))
+    for div in dividends_report:
+        print(div)
+        previous_date = get_previous_day_from_date(div['date'])
+        print(previous_date)
+        if div['currency'] != settings.PLN_CURRENCY:
+            get_currency_rate(div['currency'], previous_date)
