@@ -52,26 +52,17 @@ def calculate_tax_to_pay(dividends_report: list):
     pass
 
 def get_currency_rate(currency: str, date: str):
-    print(date)
     date = date.strftime('%Y-%m-%d')
-    print(date)
     url = settings.URL_BASE + date
     response = requests.get(url, {'format': 'api'})
-    print(response.status_code)
     if response.status_code == 404: #this day is holiday/weekend, take previous day 
         previous_date = get_previous_day_from_date(date)
         get_currency_rate(currency, previous_date)
-    #     date_in_datetime_format = date_in_datetime_format - datetime.timedelta(days=1)
-    #     date_in_string_format = date_in_datetime_format.strftime('%Y-%m-%d')
-
-    #     url = settings.URL_BASE + date_in_string_format
-    #     response = requests.get(url, {'format': 'api'})
-    print(response.json())
-    for rate in response.json()[0]['rates']:
-        if rate['code'] == currency:
-            result = rate['mid']
-    print(result)
-    return result
+    else:
+        for rate in response.json()[0]['rates']:
+            if rate['code'] == currency:
+                result = rate['mid']
+        return result
 
 
 if __name__ == '__main__':
