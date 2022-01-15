@@ -78,12 +78,14 @@ def get_currency_rate(currency: str, date: str):
 if __name__ == '__main__':
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
-    print(taxes_report)
     for div in dividends_report:
         print(div)
+        paid_withholding_tax = next(filter(lambda tax: tax['name'] == div['name'] and tax['date'] == div['date'], taxes_report))
+        print(paid_withholding_tax)
         previous_date = get_previous_day_from_date(div['date'])
         # print(previous_date)
         if div['currency'] != settings.PLN_CURRENCY:
             currency_rate = get_currency_rate(div['currency'], previous_date)
             div_in_pln = round(float(div['amount']) * currency_rate, 2)
             print(div_in_pln)
+            # tax_to_paid = 
