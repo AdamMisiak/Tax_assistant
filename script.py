@@ -29,10 +29,19 @@ def get_previous_day_from_date(date):
     if isinstance(date, datetime):
         result = date - timedelta(days=1)
         return result
-    elif isinstance(date, str):
+    elif isinstance(date, str) and not '-' in date:
         year = date[:4]
         month = date[4:6]
         day = date[6:8]
+        date_in_string_format = f"{day}-{month}-{year}"
+        date_in_datetime_format = datetime.strptime(date_in_string_format, '%d-%m-%Y')
+        result = date_in_datetime_format - timedelta(days=1)
+        return result
+    elif isinstance(date, str) and '-' in date:
+        date = date.split("-")
+        year = date[0]
+        month = date[1]
+        day = date[2]
         date_in_string_format = f"{day}-{month}-{year}"
         date_in_datetime_format = datetime.strptime(date_in_string_format, '%d-%m-%Y')
         result = date_in_datetime_format - timedelta(days=1)
@@ -43,16 +52,21 @@ def calculate_tax_to_pay(dividends_report: list):
     pass
 
 def get_currency_rate(currency: str, date: str):
+    print(date)
     date = date.strftime('%Y-%m-%d')
+    print(date)
     url = settings.URL_BASE + date
     response = requests.get(url, {'format': 'api'})
     print(response.status_code)
-    # while response.status_code == 404: #this day is holiday/weekend, take previous day 
+    if response.status_code == 404: #this day is holiday/weekend, take previous day 
+        previous_date = get_previous_day_from_date(date)
+        get_currency_rate(currency, previous_date)
     #     date_in_datetime_format = date_in_datetime_format - datetime.timedelta(days=1)
     #     date_in_string_format = date_in_datetime_format.strftime('%Y-%m-%d')
 
     #     url = settings.URL_BASE + date_in_string_format
     #     response = requests.get(url, {'format': 'api'})
+    print(response.json())
     for rate in response.json()[0]['rates']:
         if rate['code'] == currency:
             result = rate['mid']
@@ -66,6 +80,6 @@ if __name__ == '__main__':
     for div in dividends_report:
         print(div)
         previous_date = get_previous_day_from_date(div['date'])
-        print(previous_date)
+        # print(previous_date)
         if div['currency'] != settings.PLN_CURRENCY:
             get_currency_rate(div['currency'], previous_date)
