@@ -12,17 +12,25 @@ def open_csv_file():
             rows.append(row[0].replace('"', "").split(';'))
         return rows
 
-def get_dividends_from_report(report: list):
+def get_relevant_data_from_report(report: list):
     divs_only_report = []
-    for div in report:
-        if div[6] in ['Dividends']:
-            single_dividend = {}
-            single_dividend['name'] = div[1]
-            single_dividend['date'] = div[3]
-            single_dividend['amount'] = div[5]
-            single_dividend['currency'] = div[0]
-            divs_only_report.append(single_dividend)
-    return divs_only_report
+    taxes_only_report = []
+    for row in report:
+        if row[6] in ['Dividends']:
+            record = {}
+            record['name'] = row[1]
+            record['date'] = row[3]
+            record['amount'] = row[5]
+            record['currency'] = row[0]
+            divs_only_report.append(record)
+        elif row[6] in ['Withholding Tax']:
+            record = {}
+            record['name'] = row[1]
+            record['date'] = row[3]
+            record['amount'] = row[5]
+            record['currency'] = row[0]
+            taxes_only_report.append(record)
+    return divs_only_report, taxes_only_report
 
 # TODO: Add type hints to `date`
 def get_previous_day_from_date(date):
@@ -55,22 +63,27 @@ def get_currency_rate(currency: str, date: str):
     date = date.strftime('%Y-%m-%d')
     url = settings.URL_BASE + date
     response = requests.get(url, {'format': 'api'})
-    if response.status_code == 404: #this day is holiday/weekend, take previous day 
-        previous_date = get_previous_day_from_date(date)
-        get_currency_rate(currency, previous_date)
-    else:
-        for rate in response.json()[0]['rates']:
-            if rate['code'] == currency:
-                result = rate['mid']
-        return result
+    while response.status_code == 404: #this day is holiday/weekend, take previous day 
+        date = get_previous_day_from_date(date)
+        date = date.strftime('%Y-%m-%d')
+        url = settings.URL_BASE + date
+        response = requests.get(url, {'format': 'api'})
+        # get_currency_rate(currency, previous_date)
+    for rate in response.json()[0]['rates']:
+        if rate['code'] == currency:
+            result = rate['mid']
+    return result
 
 
 if __name__ == '__main__':
     report = open_csv_file()
-    dividends_report = get_dividends_from_report(report)
+    dividends_report, taxes_report = get_relevant_data_from_report(report)
+    print(taxes_report)
     for div in dividends_report:
         print(div)
         previous_date = get_previous_day_from_date(div['date'])
         # print(previous_date)
         if div['currency'] != settings.PLN_CURRENCY:
-            get_currency_rate(div['currency'], previous_date)
+            currency_rate = get_currency_rate(div['currency'], previous_date)
+            div_in_pln = round(float(div['amount']) * currency_rate, 2)
+            print(div_in_pln)
