@@ -78,14 +78,19 @@ def get_currency_rate(currency: str, date: str):
 if __name__ == '__main__':
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
-    for div in dividends_report:
-        print(div)
-        paid_withholding_tax = next(filter(lambda tax: tax['name'] == div['name'] and tax['date'] == div['date'], taxes_report))
+    total_tax_to_paid_in_pln = 0
+    for received_dividend in dividends_report:
+        print(received_dividend)
+        paid_withholding_tax = next(filter(lambda tax: tax['name'] == received_dividend['name'] and tax['date'] == received_dividend['date'], taxes_report))
         print(paid_withholding_tax)
-        previous_date = get_previous_day_from_date(div['date'])
-        # print(previous_date)
-        if div['currency'] != settings.PLN_CURRENCY:
-            currency_rate = get_currency_rate(div['currency'], previous_date)
-            div_in_pln = round(float(div['amount']) * currency_rate, 2)
-            print(div_in_pln)
-            # tax_to_paid = 
+        previous_date = get_previous_day_from_date(received_dividend['date'])
+        if received_dividend['currency'] != settings.PLN_CURRENCY:
+            currency_rate = get_currency_rate(received_dividend['currency'], previous_date)
+            received_dividend_in_pln = round(float(received_dividend['amount']) * currency_rate, 2)
+            print(received_dividend_in_pln)
+            paid_withholding_tax_in_pln = round(float(paid_withholding_tax['amount']) * currency_rate * -1, 2)
+            print(paid_withholding_tax_in_pln)
+            tax_to_paid_in_pln = round(0.19 * received_dividend_in_pln - paid_withholding_tax_in_pln, 2)
+            print(tax_to_paid_in_pln)
+            total_tax_to_paid_in_pln += tax_to_paid_in_pln
+    print(total_tax_to_paid_in_pln)
