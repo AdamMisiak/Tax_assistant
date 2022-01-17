@@ -85,12 +85,16 @@ if __name__ == '__main__':
         print(paid_withholding_tax)
         previous_date = get_previous_day_from_date(received_dividend['date'])
         if received_dividend['currency'] != settings.PLN_CURRENCY:
+            tax_rate = 0.19
+            if received_dividend['name'] in settings.MLP_STOCKS:
+                # TODO: check how to calculate MLP taxes, right now it is 0pln - 0.37 change to 0.42?
+                tax_rate = 0.37
             currency_rate = get_currency_rate(received_dividend['currency'], previous_date)
             received_dividend_in_pln = round(float(received_dividend['amount']) * currency_rate, 2)
             print(received_dividend_in_pln)
             paid_withholding_tax_in_pln = round(float(paid_withholding_tax['amount']) * currency_rate * -1, 2)
             print(paid_withholding_tax_in_pln)
-            tax_to_paid_in_pln = round(0.19 * received_dividend_in_pln - paid_withholding_tax_in_pln, 2)
+            tax_to_paid_in_pln = round(tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2)
             print(tax_to_paid_in_pln)
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
     print(total_tax_to_paid_in_pln)
