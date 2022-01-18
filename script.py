@@ -87,8 +87,7 @@ if __name__ == '__main__':
         if received_dividend['currency'] != settings.PLN_CURRENCY:
             tax_rate = 0.19
             if received_dividend['name'] in settings.MLP_STOCKS:
-                # TODO: check how to calculate MLP taxes, right now it is 0pln - 0.37 change to 0.42?
-                tax_rate = 0.37
+                tax_rate = 0.41
             currency_rate = get_currency_rate(received_dividend['currency'], previous_date)
             received_dividend_in_pln = round(float(received_dividend['amount']) * currency_rate, 2)
             print(received_dividend_in_pln)
