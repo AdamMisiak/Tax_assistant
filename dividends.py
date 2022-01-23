@@ -4,6 +4,8 @@ import requests
 from datetime import datetime, timedelta
 from typing import Tuple, Union
 
+# get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
+
 
 def open_csv_file():
     rows = []
@@ -112,6 +114,7 @@ def get_currency_rate_for_date(currency: str, date: str) -> float:
 
 if __name__ == "__main__":
     report = open_csv_file()
+    print(report)
     dividends_report, taxes_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     print(total_tax_to_paid_in_pln)
