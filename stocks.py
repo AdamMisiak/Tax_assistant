@@ -11,7 +11,7 @@ def open_csv_file():
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
-            rows.append(row[0].replace('"', "").split(";"))
+            rows.append(row[0].replace('"', "").split("|"))
         return rows
 
         
@@ -19,6 +19,7 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     stocks_report = []
     options_report = []
     for row in report:
+        print(row)
         if row[1] in ["STK"]:
             record = {}
             record["name"] = row[2]
@@ -41,7 +42,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
 
 if __name__ == "__main__":
     report = open_csv_file()
-    print(report)
     stocks_report, options_report = get_relevant_data_from_report(report)
     print(stocks_report)
     print(options_report)
