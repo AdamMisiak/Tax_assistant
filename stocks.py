@@ -19,7 +19,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     stocks_report = []
     options_report = []
     for row in report:
-        print(row)
         if row[1] in ["STK"]:
             record = {}
             record["name"] = row[2]
@@ -45,3 +44,6 @@ if __name__ == "__main__":
     stocks_report, options_report = get_relevant_data_from_report(report)
     print(stocks_report)
     print(options_report)
+    for stock in stocks_report:
+        if float(stock["amount"]) < 0:
+            print(stock)
