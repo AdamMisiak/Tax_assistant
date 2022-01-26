@@ -6,19 +6,22 @@ from datetime import datetime, timedelta
 from typing import Tuple, Union
 
 
-def open_csv_file():
+def open_csv_file(file):
     rows = []
-    with open(settings.STOCKS_FILE_CSV, "r") as file:
+    with open(file, "r") as file:
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
-            rows.append(row[0].replace('"', "").split("|"))
+            if row[0] != settings.HEADERS_OF_CSV_FILE:
+                rows.append(row[0].replace('"', "").split("|"))
         return rows
 
 def merge_csv_files():
+    rows = []
     files = list(filter(lambda file: file.startswith('STOCKS'), os.listdir("data")))
-    print(files)
-    
+    for file in files:
+        rows += open_csv_file(f"data/{file}")
+    return rows    
         
 def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     stocks_report = []
@@ -45,11 +48,10 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     return stocks_report, options_report
 
 if __name__ == "__main__":
-    merge_csv_files()
-    report = open_csv_file()
+    report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
     print(stocks_report)
     print(options_report)
     for stock in stocks_report:
-        if float(stock["amount"]) < 0:
+        if float(stock["amount"]) > 0:
             print(stock)
