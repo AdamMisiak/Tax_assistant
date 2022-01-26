@@ -1,4 +1,5 @@
 import csv
+import os
 import settings
 import requests
 from datetime import datetime, timedelta
@@ -14,6 +15,10 @@ def open_csv_file():
             rows.append(row[0].replace('"', "").split("|"))
         return rows
 
+def merge_csv_files():
+    files = list(filter(lambda file: file.startswith('STOCKS'), os.listdir("data")))
+    print(files)
+    
         
 def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     stocks_report = []
@@ -40,6 +45,7 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     return stocks_report, options_report
 
 if __name__ == "__main__":
+    merge_csv_files()
     report = open_csv_file()
     stocks_report, options_report = get_relevant_data_from_report(report)
     print(stocks_report)
