@@ -17,6 +17,7 @@ def open_csv_file(file):
         return rows
 
 def merge_csv_files():
+    # moze dodac t212
     rows = []
     files = list(filter(lambda file: file.startswith('STOCKS'), os.listdir("data")))
     for file in files:
@@ -47,11 +48,17 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             options_report.append(record)
     return stocks_report, options_report
 
+def find_all_transactions_of_stock(closing_transaction, report):
+    print(closing_transaction)
+    all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0, report))
+
+    print(all_transactions)
+
 if __name__ == "__main__":
     report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
-    print(stocks_report)
-    print(options_report)
-    for stock in stocks_report:
-        if float(stock["amount"]) > 0:
-            print(stock)
+    # print(stocks_report)
+    # print(options_report)
+    for transaction in stocks_report:
+        if float(transaction["amount"]) < 0 and transaction['date'].startswith("2021"):
+            find_all_transactions_of_stock(transaction, stocks_report)
