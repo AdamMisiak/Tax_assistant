@@ -53,11 +53,13 @@ def find_all_transactions_of_stock(closing_transaction, report):
     all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0, report))
 
     print(all_transactions)
+    opening_transaction = all_transactions[0]
 
 if __name__ == "__main__":
     report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
-    # print(stocks_report)
+    stocks_report.sort(key=lambda row: datetime.strptime(row['date'], "%Y%m%d"))
+    
     # print(options_report)
     for transaction in stocks_report:
         if float(transaction["amount"]) < 0 and transaction['date'].startswith("2021"):
