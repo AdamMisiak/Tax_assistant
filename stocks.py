@@ -57,13 +57,11 @@ def get_previous_day_from_date(date: Union[str, datetime]) -> datetime:
     return result
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
-    print(currency, date)
     date = date.strftime("%Y-%m-%d")
     url = settings.URL_BASE + date
     response = requests.get(url, {"format": "api"})
     # this day is holiday/weekend, take previous day
     while response.status_code == 404:
-        print(date)
         date = get_previous_day_from_date(date)
         date = date.strftime("%Y-%m-%d")
         url = settings.URL_BASE + date
@@ -71,12 +69,14 @@ def get_currency_rate_for_date(currency: str, date: str) -> float:
     for rate in response.json()[0]["rates"]:
         if rate["code"] == currency:
             result = rate["mid"]
+    print(date, result)
     return result
 
 def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -> float:
-    opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], opening_transaction['date'])
+    opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], get_previous_day_from_date(opening_transaction['date']))
+    closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
     print(opening_transaction, closing_transaction)
-    print(opening_transaction_rate)
+    print(opening_transaction_rate, closing_transaction_rate)
     # need currency rates
 
     # return total_tax_to_paid_in_pln
