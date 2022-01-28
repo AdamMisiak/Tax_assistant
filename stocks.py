@@ -4,6 +4,7 @@ import settings
 import requests
 from datetime import datetime, timedelta
 from typing import Tuple, Union
+from utils import get_previous_day_from_date
 
 
 def open_csv_file(file):
@@ -46,15 +47,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             record["value"] = row[6]
             options_report.append(record)
     return stocks_report, options_report
-
-def get_previous_day_from_date(date: Union[str, datetime]) -> datetime:
-    year = date[:4]
-    month = date[4:6]
-    day = date[6:8]
-    date_in_string_format = f"{day}-{month}-{year}"
-    date_in_datetime_format = datetime.strptime(date_in_string_format, "%d-%m-%Y")
-    result = date_in_datetime_format - timedelta(days=1)
-    return result
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
     date = date.strftime("%Y-%m-%d")
