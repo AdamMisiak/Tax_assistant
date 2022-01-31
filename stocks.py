@@ -61,7 +61,6 @@ def get_currency_rate_for_date(currency: str, date: str) -> float:
     for rate in response.json()[0]["rates"]:
         if rate["code"] == currency:
             result = rate["mid"]
-    print(date, result)
     return result
 
 def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -> float:
@@ -69,23 +68,28 @@ def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -
     closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
     print(opening_transaction, closing_transaction)
     print(opening_transaction_rate, closing_transaction_rate)
-    # need currency rates
 
-    # return total_tax_to_paid_in_pln
+    # sprawdzic GREE bo tam trzeba dobierac w pary
+    total_tax_to_paid_in_pln = round(((closing_transaction_rate * float(closing_transaction['value'])) - (opening_transaction_rate * float(opening_transaction['value']) * -1)) * 0.19, 2)
+    print(total_tax_to_paid_in_pln)
+    return total_tax_to_paid_in_pln
 
 def find_all_transactions_of_stock(closing_transaction, report):
     all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0, report))
-
     # rule FIFO
     opening_transaction = all_transactions[0]
-    calculate_tax_to_pay(opening_transaction, closing_transaction)
+    return calculate_tax_to_pay(opening_transaction, closing_transaction)
 
 if __name__ == "__main__":
     report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
     stocks_report.sort(key=lambda row: datetime.strptime(row['date'], "%Y%m%d"))
+    total_tax_to_paid_in_pln = 0
 
     # print(options_report)
     for transaction in stocks_report:
         if float(transaction["amount"]) < 0 and transaction['date'].startswith("2021"):
-            find_all_transactions_of_stock(transaction, stocks_report)
+            total_tax_to_paid_in_pln += find_all_transactions_of_stock(transaction, stocks_report)
+    
+    print('--'*50)
+    print(total_tax_to_paid_in_pln)
