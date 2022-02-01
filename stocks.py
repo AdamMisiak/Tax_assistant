@@ -24,9 +24,8 @@ def merge_csv_files():
         rows += open_csv_file(f"data/{file}")
     return rows    
         
-def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
+def get_relevant_data_from_report(report: list) -> list:
     stocks_report = []
-    options_report = []
     id = 0
     for row in report:
         if row[1] in ["STK"]:
@@ -39,17 +38,8 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             record["price"] = round(float(row[5]), 2)
             record["value"] = round(float(row[6]), 2)
             stocks_report.append(record)
-        elif row[1] in ["OPT"]:
-            record = {}
-            record["name"] = row[2]
-            record["date"] = row[3]
-            record["amount"] = row[4]
-            record["currency"] = row[0]
-            record["price"] = row[5]
-            record["value"] = row[6]
-            options_report.append(record)
         id += 1
-    return stocks_report, options_report
+    return stocks_report
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
     # can be changed to download csv file from
@@ -89,7 +79,7 @@ def find_all_transactions_of_stock(closing_transaction, report):
 
 if __name__ == "__main__":
     report = merge_csv_files()
-    stocks_report, options_report = get_relevant_data_from_report(report)
+    stocks_report = get_relevant_data_from_report(report)
     stocks_report.sort(key=lambda row: row['date'])
     total_tax_to_paid_in_pln = 0
 
