@@ -24,19 +24,20 @@ def merge_csv_files():
         rows += open_csv_file(f"data/{file}")
     return rows    
         
-def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
-    stocks_report = []
+def get_relevant_data_from_report(report: list) -> Tuple[dict, list]:
+    stocks_report = {}
     options_report = []
+    id = 0
     for row in report:
         if row[1] in ["STK"]:
             record = {}
             record["name"] = row[2]
-            record["date"] = row[3]
-            record["amount"] = row[4]
+            record["date"] = datetime.strptime(row[3], "%Y%m%d")
+            record["amount"] = float(row[4])
             record["currency"] = row[0]
-            record["price"] = row[5]
-            record["value"] = row[6]
-            stocks_report.append(record)
+            record["price"] = round(float(row[5]), 2)
+            record["value"] = round(float(row[6]), 2)
+            stocks_report[id] = record
         elif row[1] in ["OPT"]:
             record = {}
             record["name"] = row[2]
@@ -46,6 +47,7 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             record["price"] = row[5]
             record["value"] = row[6]
             options_report.append(record)
+        id += 1
     return stocks_report, options_report
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
@@ -66,29 +68,34 @@ def get_currency_rate_for_date(currency: str, date: str) -> float:
 def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -> float:
     opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], get_previous_day_from_date(opening_transaction['date']))
     closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
-    print(opening_transaction, closing_transaction)
     print(opening_transaction_rate, closing_transaction_rate)
+    print(opening_transaction, closing_transaction)
 
     # sprawdzic GREE bo tam trzeba dobierac w pary
     total_tax_to_paid_in_pln = round(((closing_transaction_rate * float(closing_transaction['value'])) - (opening_transaction_rate * float(opening_transaction['value']) * -1)) * 0.19, 2)
     print(total_tax_to_paid_in_pln)
+    print('--'*50)
     return total_tax_to_paid_in_pln
 
 def find_all_transactions_of_stock(closing_transaction, report):
-    all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0, report))
+    all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0 and int(transaction["amount"]) * -1 == int(closing_transaction["amount"]), report))
     # rule FIFO
+    print(closing_transaction)
+    print(all_transactions)
+    # print(report)
     opening_transaction = all_transactions[0]
     return calculate_tax_to_pay(opening_transaction, closing_transaction)
 
 if __name__ == "__main__":
     report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
-    stocks_report.sort(key=lambda row: datetime.strptime(row['date'], "%Y%m%d"))
+    # stocks_report.sort(key=lambda row: datetime.strptime(row['date'], "%Y%m%d"))
     total_tax_to_paid_in_pln = 0
 
-    # print(options_report)
-    for transaction in stocks_report:
-        if float(transaction["amount"]) < 0 and transaction['date'].startswith("2021"):
+    # print(stocks_report)
+    for id, transaction in stocks_report.items():
+        print(transaction)
+        if transaction["amount"] < 0 and transaction['date'].startswith("2021"):
             total_tax_to_paid_in_pln += find_all_transactions_of_stock(transaction, stocks_report)
     
     print('--'*50)
