@@ -24,20 +24,21 @@ def merge_csv_files():
         rows += open_csv_file(f"data/{file}")
     return rows    
         
-def get_relevant_data_from_report(report: list) -> Tuple[dict, list]:
-    stocks_report = {}
+def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
+    stocks_report = []
     options_report = []
     id = 0
     for row in report:
         if row[1] in ["STK"]:
             record = {}
+            record["id"] = id
             record["name"] = row[2]
             record["date"] = datetime.strptime(row[3], "%Y%m%d")
             record["amount"] = float(row[4])
             record["currency"] = row[0]
             record["price"] = round(float(row[5]), 2)
             record["value"] = round(float(row[6]), 2)
-            stocks_report[id] = record
+            stocks_report.append(record)
         elif row[1] in ["OPT"]:
             record = {}
             record["name"] = row[2]
@@ -51,6 +52,7 @@ def get_relevant_data_from_report(report: list) -> Tuple[dict, list]:
     return stocks_report, options_report
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
+    # can be changed to download csv file from
     date = date.strftime("%Y-%m-%d")
     url = settings.URL_BASE + date
     response = requests.get(url, {"format": "api"})
@@ -71,14 +73,13 @@ def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -
     print(opening_transaction_rate, closing_transaction_rate)
     print(opening_transaction, closing_transaction)
 
-    # sprawdzic GREE bo tam trzeba dobierac w pary
-    total_tax_to_paid_in_pln = round(((closing_transaction_rate * float(closing_transaction['value'])) - (opening_transaction_rate * float(opening_transaction['value']) * -1)) * 0.19, 2)
+    total_tax_to_paid_in_pln = round(((closing_transaction_rate * closing_transaction['value']) - (opening_transaction_rate * opening_transaction['value'] * -1)) * 0.19, 2)
     print(total_tax_to_paid_in_pln)
     print('--'*50)
     return total_tax_to_paid_in_pln
 
 def find_all_transactions_of_stock(closing_transaction, report):
-    all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and int(transaction['amount']) > 0 and int(transaction["amount"]) * -1 == int(closing_transaction["amount"]), report))
+    all_transactions = list(filter(lambda transaction: transaction["name"] == closing_transaction["name"] and transaction['amount'] > 0 and transaction["amount"] * -1 == closing_transaction["amount"], report))
     # rule FIFO
     print(closing_transaction)
     print(all_transactions)
@@ -89,13 +90,12 @@ def find_all_transactions_of_stock(closing_transaction, report):
 if __name__ == "__main__":
     report = merge_csv_files()
     stocks_report, options_report = get_relevant_data_from_report(report)
-    # stocks_report.sort(key=lambda row: datetime.strptime(row['date'], "%Y%m%d"))
+    stocks_report.sort(key=lambda row: row['date'])
     total_tax_to_paid_in_pln = 0
 
-    # print(stocks_report)
-    for id, transaction in stocks_report.items():
-        print(transaction)
-        if transaction["amount"] < 0 and transaction['date'].startswith("2021"):
+    # print(options_report)
+    for transaction in stocks_report:
+        if transaction["amount"] < 0 and transaction['date'].year == 2021 and transaction['name'] != 'GREE':
             total_tax_to_paid_in_pln += find_all_transactions_of_stock(transaction, stocks_report)
     
     print('--'*50)
