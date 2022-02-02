@@ -55,7 +55,7 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 tax_rate = 0.41
 
             previous_date = get_previous_day_from_date(received_dividend["date"])
-            currency_rate = get_currency_rate_for_date(
+            currency_rate = get_currency_rate_for_date2(
                 received_dividend["currency"], previous_date
             )
             received_dividend_in_pln = round(
@@ -71,8 +71,30 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
 
     return total_tax_to_paid_in_pln
 
+def get_csv_file_with_rates():
+    pass
+
+def get_currency_rate_for_date2(currency: str, date: str) -> float:
+    print('TEST')
+    date = date.strftime("%Y-%m-%d")
+    url = settings.URL_BASE + date
+    response = requests.get("https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.csv", allow_redirects=True)
+    open('data/RATES2021.csv', 'w').write(response.content.decode("ISO-8859-2"))
+    print(response.content.decode("ISO-8859-2"))
+        # print(file)
+    # this day is holiday/weekend, take previous day
+    while response.status_code == 404:
+        date = get_previous_day_from_date(date)
+        date = date.strftime("%Y-%m-%d")
+        url = settings.URL_BASE + date
+        response = requests.get(url, {"format": "api"})
+    for rate in response.json()[0]["rates"]:
+        if rate["code"] == currency:
+            result = rate["mid"]
+    return result
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
+    print(currency, date)
     date = date.strftime("%Y-%m-%d")
     url = settings.URL_BASE + date
     response = requests.get(url, {"format": "api"})
@@ -90,7 +112,6 @@ def get_currency_rate_for_date(currency: str, date: str) -> float:
 
 if __name__ == "__main__":
     report = open_csv_file()
-    print(report)
     dividends_report, taxes_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     print(total_tax_to_paid_in_pln)
