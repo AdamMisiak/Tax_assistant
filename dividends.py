@@ -71,18 +71,30 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
 
     return total_tax_to_paid_in_pln
 
-def get_csv_file_with_rates():
-    pass
+def get_csv_file_with_rates(year: str):
+    response = requests.get(f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True)
+    open('data/RATES2021.csv', 'w').write(response.content.decode("ISO-8859-2"))
+
+
+def get_data_from_csv_file_with_rates():
+    rows = []
+    with open("data/RATES2021.csv", 'r') as file:
+        csvreader = csv.reader(file, delimiter=';')
+        for number, row in enumerate(csvreader):
+            if number in settings.ROWS_TO_DELETE_IN_CSV:
+                continue
+            rows.append(row)
+    return rows
 
 def get_currency_rate_for_date2(currency: str, date: str) -> float:
     print('TEST')
     date = date.strftime("%Y-%m-%d")
     url = settings.URL_BASE + date
     response = requests.get("https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.csv", allow_redirects=True)
-    open('data/RATES2021.csv', 'w').write(response.content.decode("ISO-8859-2"))
-    print(response.content.decode("ISO-8859-2"))
-        # print(file)
-    # this day is holiday/weekend, take previous day
+    rates = get_data_from_csv_file_with_rates()
+    print(rates)
+    # print(response.content.decode("ISO-8859-2"))
+    print('--'*50)
     while response.status_code == 404:
         date = get_previous_day_from_date(date)
         date = date.strftime("%Y-%m-%d")
