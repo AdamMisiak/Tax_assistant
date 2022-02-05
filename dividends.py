@@ -83,7 +83,19 @@ def get_data_from_csv_file_with_rates():
         for number, row in enumerate(csvreader):
             if number in settings.ROWS_TO_DELETE_IN_CSV:
                 continue
-            rows.append(row)
+            result = {
+                "date": row[0],
+                "USD": row[2],
+                "AUD": row[3],
+                "HKD": row[4],
+                "CAD": row[5],
+                "EUR": row[8],
+                "CHF": row[10],
+                "GBP": row[11],
+                "RUB": row[30],
+                "CNY": row[34],
+            }
+            rows.append(result)
     return rows
 
 def get_currency_rate_for_date2(currency: str, date: str) -> float:
