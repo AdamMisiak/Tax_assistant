@@ -101,21 +101,28 @@ def get_data_from_csv_file_with_rates():
 def get_currency_rate_for_date2(currency: str, date: str) -> float:
     print('TEST')
     date = date.strftime("%Y-%m-%d")
-    url = settings.URL_BASE + date
-    response = requests.get("https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.csv", allow_redirects=True)
+    print(date)
     rates = get_data_from_csv_file_with_rates()
     print(rates)
-    # print(response.content.decode("ISO-8859-2"))
     print('--'*50)
-    while response.status_code == 404:
-        date = get_previous_day_from_date(date)
-        date = date.strftime("%Y-%m-%d")
-        url = settings.URL_BASE + date
-        response = requests.get(url, {"format": "api"})
-    for rate in response.json()[0]["rates"]:
-        if rate["code"] == currency:
-            result = rate["mid"]
-    return result
+    index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == "20210104"), None)
+    print(index_of_proper_date)
+    # currency_rates_for_date = next(
+    #     filter(
+    #         lambda row: tax["name"] == received_dividend["name"]
+    #         rates,
+    #     )
+    # )
+    # print(currency_rates_for_date)
+    # while response.status_code == 404:
+    #     date = get_previous_day_from_date(date)
+    #     date = date.strftime("%Y-%m-%d")
+    #     url = settings.URL_BASE + date
+    #     response = requests.get(url, {"format": "api"})
+    # for rate in response.json()[0]["rates"]:
+    #     if rate["code"] == currency:
+    #         result = rate["mid"]
+    # return result
 
 def get_currency_rate_for_date(currency: str, date: str) -> float:
     print(currency, date)
