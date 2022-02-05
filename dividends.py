@@ -100,12 +100,13 @@ def get_data_from_csv_file_with_rates():
 
 def get_currency_rate_for_date2(currency: str, date: str) -> float:
     print('TEST')
-    date = date.strftime("%Y-%m-%d")
+    print(date)
+    date = date.strftime("%Y%m%d")
     print(date)
     rates = get_data_from_csv_file_with_rates()
     print(rates)
     print('--'*50)
-    index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == "20210104"), None)
+    index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date), None)
     print(index_of_proper_date)
     # currency_rates_for_date = next(
     #     filter(
