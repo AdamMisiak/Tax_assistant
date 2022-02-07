@@ -58,6 +58,9 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             currency_rate = get_currency_rate_for_date2(
                 received_dividend["currency"], previous_date
             )
+            print('--'*50)
+            print(received_dividend["currency"], previous_date)
+            print(currency_rate)
             received_dividend_in_pln = round(
                 float(received_dividend["amount"]) * currency_rate, 2
             )
@@ -85,15 +88,15 @@ def get_data_from_csv_file_with_rates():
                 continue
             result = {
                 "date": row[0],
-                "USD": row[2],
-                "AUD": row[3],
-                "HKD": row[4],
-                "CAD": row[5],
-                "EUR": row[8],
-                "CHF": row[10],
-                "GBP": row[11],
-                "RUB": row[30],
-                "CNY": row[34],
+                "USD": float(row[2].replace(',', '.')),
+                "AUD": float(row[3]),
+                "HKD": float(row[4]),
+                "CAD": float(row[5]),
+                "EUR": float(row[8]),
+                "CHF": float(row[10]),
+                "GBP": float(row[11]),
+                "RUB": float(row[30]),
+                "CNY": float(row[34]),
             }
             rows.append(result)
     return rows
@@ -101,13 +104,20 @@ def get_data_from_csv_file_with_rates():
 def get_currency_rate_for_date2(currency: str, date: str) -> float:
     print('TEST')
     print(date)
-    date = date.strftime("%Y%m%d")
-    print(date)
+    date_str_format = date.strftime("%Y%m%d")
+    print(date_str_format)
     rates = get_data_from_csv_file_with_rates()
     print(rates)
     print('--'*50)
-    index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date), None)
+    index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date_str_format), None)
+    while index_of_proper_date is None:
+        date -= timedelta(days=1)
+        date_str_format = date.strftime("%Y%m%d")
+        index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date_str_format), None)
+        print(date)
     print(index_of_proper_date)
+    return rates[index_of_proper_date][currency]
+
     # currency_rates_for_date = next(
     #     filter(
     #         lambda row: tax["name"] == received_dividend["name"]
