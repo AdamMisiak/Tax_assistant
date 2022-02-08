@@ -2,6 +2,7 @@ import csv
 import settings
 from typing import Tuple
 from utils import get_previous_day_from_date, get_currency_rate_for_date
+from datetime import datetime
 
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
 
@@ -22,15 +23,15 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
-            record["date"] = row[3]
-            record["amount"] = row[5]
+            record["date"] = datetime.strptime(row[3], "%Y%m%d")
+            record["amount"] = float(row[5])
             record["currency"] = row[0]
             divs_only_report.append(record)
         elif row[6] in ["Withholding Tax"]:
             record = {}
             record["name"] = row[1]
-            record["date"] = row[3]
-            record["amount"] = row[5]
+            record["date"] = datetime.strptime(row[3], "%Y%m%d")
+            record["amount"] = float(row[5])
             record["currency"] = row[0]
             taxes_only_report.append(record)
     return divs_only_report, taxes_only_report
@@ -57,10 +58,10 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 received_dividend["currency"], previous_date
             )
             received_dividend_in_pln = round(
-                float(received_dividend["amount"]) * currency_rate, 2
+                received_dividend["amount"] * currency_rate, 2
             )
             paid_withholding_tax_in_pln = round(
-                float(paid_withholding_tax["amount"]) * currency_rate * -1, 2
+                paid_withholding_tax["amount"] * currency_rate * -1, 2
             )
             tax_to_paid_in_pln = round(
                 tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2
@@ -68,10 +69,6 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
     return total_tax_to_paid_in_pln
-
-
-
-
 
 
 if __name__ == "__main__":
