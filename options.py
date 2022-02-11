@@ -4,10 +4,7 @@ import settings
 import requests
 from datetime import datetime, timedelta
 from typing import Tuple, Union
-from utils import get_previous_day_from_date
-
-
-
+from utils import get_previous_day_from_date, get_currency_rate_for_date
 
 def open_csv_file(file):
     rows = []
@@ -44,12 +41,36 @@ def get_relevant_data_from_report(report: list) -> list:
         id += 1
     return options_report
 
+def calculate_tax_to_pay(options_report: list) -> float:
+    total_tax_to_paid_in_pln = 0
+
+    for received_options in options_report:
+        previous_date = get_previous_day_from_date(received_options["date"])
+        print(previous_date)
+        currency_rate = get_currency_rate_for_date(
+            received_options["currency"], previous_date
+        )
+        print(currency_rate)
+        # currency_rate = get_currency_rate_for_date(
+        #     received_dividend["currency"], previous_date
+        # )
+        # received_dividend_in_pln = round(
+        #     received_dividend["amount"] * currency_rate, 2
+        # )
+        # paid_withholding_tax_in_pln = round(
+        #     paid_withholding_tax["amount"] * currency_rate * -1, 2
+        # )
+        # tax_to_paid_in_pln = round(
+        #     tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2
+        # )
+        # total_tax_to_paid_in_pln += tax_to_paid_in_pln
+
+    return total_tax_to_paid_in_pln
+
+
 if __name__ == "__main__":
     report = merge_csv_files()
     options_report = get_relevant_data_from_report(report)
-    options_report.sort(key=lambda row: row['date'])
-    total_tax_to_paid_in_pln = 0
-
-    for transaction in options_report:
-        print(transaction)
+    total_tax_to_paid_in_pln = calculate_tax_to_pay(options_report)
+    print(total_tax_to_paid_in_pln)
     
