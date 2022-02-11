@@ -40,21 +40,6 @@ def get_relevant_data_from_report(report: list) -> list:
         id += 1
     return stocks_report
 
-# def get_currency_rate_for_date(currency: str, date: str) -> float:
-#     date = date.strftime("%Y-%m-%d")
-#     url = settings.URL_BASE + date
-#     response = requests.get(url, {"format": "api"})
-#     # this day is holiday/weekend, take previous day
-#     while response.status_code == 404:
-#         date = get_previous_day_from_date(date)
-#         date = date.strftime("%Y-%m-%d")
-#         url = settings.URL_BASE + date
-#         response = requests.get(url, {"format": "api"})
-#     for rate in response.json()[0]["rates"]:
-#         if rate["code"] == currency:
-#             result = rate["mid"]
-#     return result
-
 def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -> float:
     opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], get_previous_day_from_date(opening_transaction['date']))
     closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
