@@ -46,23 +46,22 @@ def calculate_tax_to_pay(options_report: list) -> float:
 
     for received_options in options_report:
         previous_date = get_previous_day_from_date(received_options["date"])
-        print(previous_date)
+        print(received_options)
         currency_rate = get_currency_rate_for_date(
             received_options["currency"], previous_date
         )
         print(currency_rate)
-        # currency_rate = get_currency_rate_for_date(
-        #     received_dividend["currency"], previous_date
-        # )
-        # received_dividend_in_pln = round(
-        #     received_dividend["amount"] * currency_rate, 2
-        # )
+        received_option_in_pln = round(
+            received_options["price"] * 100 * currency_rate, 2
+        )
+        print(received_option_in_pln)
         # paid_withholding_tax_in_pln = round(
         #     paid_withholding_tax["amount"] * currency_rate * -1, 2
         # )
         # tax_to_paid_in_pln = round(
-        #     tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2
+        #     0.19 * received_dividend_in_pln, 2
         # )
+        # print(tax_to_paid_in_pln)
         # total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
     return total_tax_to_paid_in_pln
