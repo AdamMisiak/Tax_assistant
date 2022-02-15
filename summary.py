@@ -1,0 +1,4 @@
+from dividends import get_summary_dividends_tax
+
+total_tax_to_paid_in_pln_dividends = get_summary_dividends_tax()
+print(total_tax_to_paid_in_pln_dividends)

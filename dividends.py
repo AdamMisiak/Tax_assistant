@@ -70,9 +70,8 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
 
     return total_tax_to_paid_in_pln
 
-
-if __name__ == "__main__":
+def get_summary_dividends_tax():
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
-    print(total_tax_to_paid_in_pln)
+    return total_tax_to_paid_in_pln
