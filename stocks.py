@@ -55,7 +55,7 @@ def find_all_transactions_of_stock(closing_transaction, report):
     opening_transaction = all_transactions[0]
     return calculate_tax_to_pay(opening_transaction, closing_transaction)
 
-if __name__ == "__main__":
+def get_summary_stocks_tax():
     report = merge_csv_files()
     stocks_report = get_relevant_data_from_report(report)
     stocks_report.sort(key=lambda row: row['date'])
@@ -66,4 +66,4 @@ if __name__ == "__main__":
             total_tax_to_paid_in_pln += find_all_transactions_of_stock(transaction, stocks_report)
     
     total_tax_to_paid_in_pln = round(total_tax_to_paid_in_pln, 2)
-    print(total_tax_to_paid_in_pln)
+    return total_tax_to_paid_in_pln
