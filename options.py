@@ -59,10 +59,9 @@ def calculate_tax_to_pay(options_report: list) -> float:
 
     return total_tax_to_paid_in_pln
 
-
-if __name__ == "__main__":
+def get_summary_options_tax():
     report = merge_csv_files()
     options_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(options_report)
-    print(total_tax_to_paid_in_pln)
-    
+    return total_tax_to_paid_in_pln
+
