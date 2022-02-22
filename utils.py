@@ -52,6 +52,7 @@ def get_previous_day_from_date(date: datetime) -> datetime:
         # return result
 
 def get_currency_rate_for_date(currency: str, date: datetime) -> float:
+    start_year = date.year
     date_str_format = date.strftime("%Y%m%d")
     rates = get_data_from_csv_file_with_rates(date.year)
     index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date_str_format), None)
@@ -59,6 +60,9 @@ def get_currency_rate_for_date(currency: str, date: datetime) -> float:
     while index_of_proper_date is None:
         date -= timedelta(days=1)
         date_str_format = date.strftime("%Y%m%d")
+        if date.year != start_year:
+            rates = get_data_from_csv_file_with_rates(date.year)
+        print(date_str_format)
         index_of_proper_date = next((index for (index, row) in enumerate(rates) if row["date"] == date_str_format), None)
     return rates[index_of_proper_date][currency]
 

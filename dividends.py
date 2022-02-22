@@ -13,13 +13,14 @@ def open_csv_file():
         csvreader = csv.reader(file)
         header = next(csvreader)
         for row in csvreader:
-            rows.append(row[0].replace('"', "").split(";"))
+            rows.append(row[0].replace('"', "").split("|"))
         return rows
 
 def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
+        print(row)
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
@@ -52,6 +53,9 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             if received_dividend["name"] in settings.MLP_STOCKS:
                 # 37% + 4%
                 tax_rate = 0.41
+            
+            print('--'* 50)
+            print(received_dividend)
 
             previous_date = get_previous_day_from_date(received_dividend["date"])
             currency_rate = get_currency_rate_for_date(
@@ -68,10 +72,16 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             )
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
+            print(f"{received_dividend['currency']} rate: {currency_rate} - received div in pln: {received_dividend_in_pln} - tax to paid in pln: {tax_to_paid_in_pln}")
+
     return total_tax_to_paid_in_pln
 
 def get_summary_dividends_tax():
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
+    print(dividends_report, taxes_report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     return total_tax_to_paid_in_pln
+
+if __name__ == "__main__":
+    get_summary_dividends_tax()
