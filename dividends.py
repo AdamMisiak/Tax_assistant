@@ -20,7 +20,7 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
-        print(row)
+        # print(row)
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
@@ -73,13 +73,13 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
             print(f"{received_dividend['currency']} rate: {currency_rate} - received div in pln: {received_dividend_in_pln} - tax to paid in pln: {tax_to_paid_in_pln}")
-
+    
     return total_tax_to_paid_in_pln
 
 def get_summary_dividends_tax():
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
-    print(dividends_report, taxes_report)
+    # print(dividends_report, taxes_report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     return total_tax_to_paid_in_pln
 
