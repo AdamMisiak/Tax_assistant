@@ -20,7 +20,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
-        # print(row)
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
@@ -39,6 +38,9 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
 
 def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
     total_tax_to_paid_in_pln = 0
+    print('---'*50)
+    print('DIVIDENDS:')
+    print('---'*50)
 
     for received_dividend in dividends_report:
         paid_withholding_tax = next(
@@ -54,7 +56,6 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 # 37% + 4%
                 tax_rate = 0.41
             
-            print('--'* 50)
             print(received_dividend)
 
             previous_date = get_previous_day_from_date(received_dividend["date"])
@@ -72,14 +73,14 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             )
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
-            print(f"{received_dividend['currency']} rate: {currency_rate} - received div in pln: {received_dividend_in_pln} - tax to paid in pln: {tax_to_paid_in_pln}")
+            print(f"{received_dividend['currency']} rate: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax PLN: {tax_to_paid_in_pln}")
+            print('--'*50)
     
     return total_tax_to_paid_in_pln
 
 def get_summary_dividends_tax():
     report = open_csv_file()
     dividends_report, taxes_report = get_relevant_data_from_report(report)
-    # print(dividends_report, taxes_report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     return total_tax_to_paid_in_pln
 
