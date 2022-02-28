@@ -38,9 +38,9 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
 
 def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
     total_tax_to_paid_in_pln = 0
-    print('---'*50)
+    print('--'*50)
     print('DIVIDENDS:')
-    print('---'*50)
+    print('--'*50)
 
     for received_dividend in dividends_report:
         paid_withholding_tax = next(

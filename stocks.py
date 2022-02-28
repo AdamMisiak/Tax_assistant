@@ -43,6 +43,8 @@ def get_relevant_data_from_report(report: list) -> list:
 def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -> float:
     opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], get_previous_day_from_date(opening_transaction['date']))
     closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
+    print(f"{opening_transaction['currency']} open rate: {opening_transaction_rate} - {closing_transaction['currency']} close rate: {closing_transaction_rate} -")
+    print('--'*50)
 
     total_tax_to_paid_in_pln = round(((closing_transaction_rate * closing_transaction['value']) - (opening_transaction_rate * opening_transaction['value'] * -1)) * 0.19, 2)
     return total_tax_to_paid_in_pln
@@ -61,8 +63,12 @@ def get_summary_stocks_tax():
     stocks_report.sort(key=lambda row: row['date'])
     total_tax_to_paid_in_pln = 0
 
+    print('STOCKS:')
+    print('--'*50)
+
     for transaction in stocks_report:
         if transaction["amount"] < 0 and transaction['date'].year == 2021 and transaction['name'] != 'GREE':
+            print(transaction)
             total_tax_to_paid_in_pln += find_all_transactions_of_stock(transaction, stocks_report)
     
     total_tax_to_paid_in_pln = round(total_tax_to_paid_in_pln, 2)
