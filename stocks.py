@@ -44,10 +44,11 @@ def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -
     opening_transaction_rate = get_currency_rate_for_date(opening_transaction['currency'], get_previous_day_from_date(opening_transaction['date']))
     closing_transaction_rate = get_currency_rate_for_date(closing_transaction['currency'], get_previous_day_from_date(closing_transaction['date']))
 
+    tax_rate = 0.19
     profit_or_loss_in_pln = round(((closing_transaction_rate * closing_transaction['value']) - (opening_transaction_rate * opening_transaction['value'] * -1)), 2)
-    total_tax_to_paid_in_pln = round(profit_or_loss_in_pln * 0.19, 2)
+    total_tax_to_paid_in_pln = round(profit_or_loss_in_pln * tax_rate, 2)
     
-    print(f"Open rate {opening_transaction['currency']}: {opening_transaction_rate} - Close rate {closing_transaction['currency']}: {closing_transaction_rate} - Profit/Loss PLN: {profit_or_loss_in_pln} - Tax PLN")
+    print(f"Open rate {opening_transaction['currency']}: {opening_transaction_rate} - Close rate {closing_transaction['currency']}: {closing_transaction_rate} - Profit/Loss PLN: {profit_or_loss_in_pln} - Tax rate: {tax_rate*100}% - Tax PLN: {total_tax_to_paid_in_pln}")
     print('--'*50)
 
     return total_tax_to_paid_in_pln

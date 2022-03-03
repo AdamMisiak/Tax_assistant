@@ -73,7 +73,7 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
             print(received_dividend)
-            print(f"Rate {received_dividend['currency']}: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax PLN: {tax_to_paid_in_pln}")
+            print(f"Rate {received_dividend['currency']}: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax rate: {tax_rate*100}% - Tax PLN: {tax_to_paid_in_pln}")
             print('--'*50)
     
     return total_tax_to_paid_in_pln
