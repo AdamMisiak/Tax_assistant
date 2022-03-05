@@ -44,6 +44,10 @@ def get_relevant_data_from_report(report: list) -> list:
 def calculate_tax_to_pay(options_report: list) -> float:
     total_tax_to_paid_in_pln = 0
 
+
+    print('OPTIONS:')
+    print('--'*50)
+
     for received_options in options_report:
         previous_date = get_previous_day_from_date(received_options["date"])
         currency_rate = get_currency_rate_for_date(
@@ -56,6 +60,8 @@ def calculate_tax_to_pay(options_report: list) -> float:
             0.19 * received_option_in_pln, 2
         )
         total_tax_to_paid_in_pln += tax_to_paid_in_pln
+
+        print(received_options)
 
     return total_tax_to_paid_in_pln
 
