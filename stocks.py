@@ -72,8 +72,7 @@ def calculate_tax_to_pay(opening_transaction: dict, closing_transaction: dict) -
     return total_tax_to_paid_in_pln
 
 
-def find_all_transactions_of_stock(closing_transaction, report):
-    # and transaction["amount"] * -1 == closing_transaction["amount"]
+def get_tax_from_all_transactions_of_stock(closing_transaction, report):
     all_transactions = list(
         filter(
             lambda transaction: transaction["name"] == closing_transaction["name"]
@@ -85,6 +84,13 @@ def find_all_transactions_of_stock(closing_transaction, report):
     # rule FIFO
     # TODO: Added implementation of calculating few transactions of buy and one transaction of sell
     opening_transaction = all_transactions[0]
+    if closing_transaction['amount'] != opening_transaction['amount']*-1:
+        for transaction in all_transactions:
+            print(transaction)
+    # print(closing_transaction['amount'])
+    # print(opening_transaction['amount'])
+    # if closing_transaction['amount'] != opening_transaction['amount']*-1:
+    #     print('test')
     opening_transaction['calculated'] = True
     return calculate_tax_to_pay(opening_transaction, closing_transaction)
 
@@ -105,7 +111,7 @@ def get_summary_stocks_tax():
             # and transaction["name"] != "GREE"
         ):
             print(transaction)
-            total_tax_to_paid_in_pln += find_all_transactions_of_stock(
+            total_tax_to_paid_in_pln += get_tax_from_all_transactions_of_stock(
                 transaction, stocks_report
             )
 
