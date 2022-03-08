@@ -3,7 +3,7 @@ import csv
 import settings
 import requests
 import re
-
+from settings import PLN_CURRENCY
 
 def get_csv_file_with_rates(year: str):
     response = requests.get(
@@ -59,6 +59,8 @@ def get_previous_day_from_date(date: datetime) -> datetime:
 
 
 def get_currency_rate_for_date(currency: str, date: datetime) -> float:
+    if currency == PLN_CURRENCY:
+        return 1
     start_year = date.year
     date_str_format = date.strftime("%Y%m%d")
     rates = get_data_from_csv_file_with_rates(date.year)

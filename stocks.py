@@ -38,6 +38,7 @@ def get_relevant_data_from_report(report: list) -> list:
             record["currency"] = row[0]
             record["price"] = round(float(row[5]), 2)
             record["value"] = round(float(row[6]), 2)
+            record["currency_rate_d_1"] = get_currency_rate_for_date(record["currency"], get_previous_day_from_date(record["date"]))
             record["calculated"] = False
             stocks_report.append(record)
         id += 1
@@ -105,19 +106,20 @@ def get_summary_stocks_tax():
     stocks_report.sort(key=lambda row: row["date"])
     total_tax_to_paid_in_pln = 0
 
-    print("STOCKS:")
-    print("--" * 50)
+    # print("STOCKS:")
+    # print("--" * 50)
 
     for transaction in stocks_report:
-        if (
-            transaction["amount"] < 0
-            and transaction["date"].year == 2021
-            # and transaction["name"] != "GREE"
-        ):
-            print(transaction)
-            total_tax_to_paid_in_pln += get_tax_from_all_transactions_of_stock(
-                transaction, stocks_report
-            )
+        print(transaction)
+    #     if (
+    #         transaction["amount"] < 0
+    #         and transaction["date"].year == 2021
+    #         # and transaction["name"] != "GREE"
+    #     ):
+            # print(transaction)
+    #         total_tax_to_paid_in_pln += get_tax_from_all_transactions_of_stock(
+    #             transaction, stocks_report
+    #         )
 
-    total_tax_to_paid_in_pln = round(total_tax_to_paid_in_pln, 2)
+    # total_tax_to_paid_in_pln = round(total_tax_to_paid_in_pln, 2)
     return total_tax_to_paid_in_pln
