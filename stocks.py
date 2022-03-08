@@ -84,9 +84,13 @@ def get_tax_from_all_transactions_of_stock(closing_transaction, report):
     # rule FIFO
     # TODO: Added implementation of calculating few transactions of buy and one transaction of sell
     opening_transaction = all_transactions[0]
-    if closing_transaction['amount'] != opening_transaction['amount']*-1:
+    if closing_transaction['amount']*-1 != opening_transaction['amount']:
+        amount_of_stocks_bought = 0
         for transaction in all_transactions:
+            amount_of_stocks_bought += transaction['amount']
+            # print(calculate_tax_to_pay(transaction, closing_transaction))
             print(transaction)
+        print(amount_of_stocks_bought)
     # print(closing_transaction['amount'])
     # print(opening_transaction['amount'])
     # if closing_transaction['amount'] != opening_transaction['amount']*-1:
