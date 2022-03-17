@@ -111,21 +111,24 @@ def find_opening_transactions(closing_transaction, report):
     )
     if abs(matching_transactions[0]['amount']) == abs(closing_transaction['amount']):
         print('BINGO')
-        print(matching_transactions[0])
+        # print(matching_transactions[0])
         matching_transactions[0]['calculated'] = True
+        return matching_transactions[0]
     else:
         sum_of_shares = 0
         partial_transactions = []
         for transaction in matching_transactions:
             sum_of_shares += abs(matching_transactions[0]['amount'])
             partial_transactions.append(transaction)
-            print(transaction)
-            print(sum_of_shares)
+            # create new object to list with sum of every transaction and return it
+            # print(transaction)
+            # print(sum_of_shares)
             if sum_of_shares == abs(closing_transaction['amount']):
                 print('bingo2')
-    print(matching_transactions)
-    print(len(matching_transactions))
-    print("--" * 50)
+                print(partial_transactions)
+    # print(matching_transactions)
+    # print(len(matching_transactions))
+    # print("--" * 50)
 
 def calculate_tax_to_pay(stocks_report: list) -> float:
     total_tax_to_paid_in_pln = 0
@@ -140,7 +143,9 @@ def calculate_tax_to_pay(stocks_report: list) -> float:
             # and transaction["name"] != "GREE"
         ):
             print(transaction)
-            find_opening_transactions(transaction, stocks_report)
+            opening_transaction = find_opening_transactions(transaction, stocks_report)
+            print(opening_transaction)
+            print("--" * 50)
             
 
     return total_tax_to_paid_in_pln
