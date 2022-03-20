@@ -110,33 +110,20 @@ def find_opening_transactions(closing_transaction, report):
         )
     )
     if abs(matching_transactions[0]['amount']) == abs(closing_transaction['amount']):
-        print('BINGO')
-        # print(matching_transactions[0])
         matching_transactions[0]['calculated'] = True
         return matching_transactions[0]
     else:
-        sum_of_shares = 0
-        partial_transactions = []
-        summary_transaction = {}
         returned_transaction = {'amount': 0, 'value_pln': 0}
-        # returned_transaction = matching_transactions[0]
-        # print(returned_transaction, 'rrrrrrr')
     
         for transaction in matching_transactions:
-            # sum_of_shares += abs(matching_transactions[0]['amount'])
-            # print(transaction, 'tttttttt')
             returned_transaction['amount'] += abs(transaction['amount'])
             returned_transaction['value_pln'] += transaction['value_pln']
             if returned_transaction['amount'] == abs(closing_transaction['amount']):
-                # print('bingo2')
-                # print(returned_transaction, 'finallll')
                 return returned_transaction
-    # print(matching_transactions)
-    # print(len(matching_transactions))
-    # print("--" * 50)
 
 def calculate_tax_to_pay(stocks_report: list) -> float:
     total_tax_to_paid_in_pln = 0
+    tax_rate = 0.19
     print("--" * 50)
     print("STOCKS:")
     print("--" * 50)
@@ -145,17 +132,12 @@ def calculate_tax_to_pay(stocks_report: list) -> float:
         if (
             transaction["amount"] < 0
             and transaction["date"].year == 2021
-            # and transaction["name"] != "GREE"
         ):
-            print(transaction)
             opening_transaction = find_opening_transactions(transaction, stocks_report)
-            print(opening_transaction)
-            print(transaction['value_pln'] + opening_transaction['value_pln'])
-            print("--" * 50)
+            profit_or_loss = round(transaction['value_pln'] + opening_transaction['value_pln'], 2)
+            total_tax_to_paid_in_pln += round(profit_or_loss*tax_rate, 2)
             
-
     return total_tax_to_paid_in_pln
-    
 
 def get_summary_stocks_tax():
     report = merge_csv_files()
