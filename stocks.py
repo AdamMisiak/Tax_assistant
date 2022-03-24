@@ -51,9 +51,9 @@ def get_relevant_data_from_report(report: list) -> list:
 def calculate_tax_to_pay(stocks_report: list) -> float:
     total_tax_to_paid_in_pln = 0
     tax_rate = 0.19
-    print("--" * 50)
-    print("STOCKS:")
-    print("--" * 50)
+    # print("--" * 50)
+    # print("STOCKS:")
+    # print("--" * 50)
 
     for transaction in stocks_report:
         if (
@@ -64,7 +64,7 @@ def calculate_tax_to_pay(stocks_report: list) -> float:
             profit_or_loss = round(transaction['value_pln'] + opening_transaction['value_pln'], 2)
             total_tax_to_paid_in_pln += round(profit_or_loss*tax_rate, 2)
             
-    return total_tax_to_paid_in_pln
+    return round(total_tax_to_paid_in_pln, 2)
 
 def find_opening_transactions(closing_transaction, report):
     # Already sorted by date
