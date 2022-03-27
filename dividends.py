@@ -6,6 +6,11 @@ from datetime import datetime
 
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
 
+def get_summary_dividends_tax():
+    report = open_csv_file()
+    dividends_report, taxes_report = get_relevant_data_from_report(report)
+    total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
+    return total_tax_to_paid_in_pln
 
 def open_csv_file():
     rows = []
@@ -16,31 +21,38 @@ def open_csv_file():
             rows.append(row[0].replace('"', "").split("|"))
         return rows
 
+
 def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
+        print(row)
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
             record["date"] = datetime.strptime(row[3], "%Y%m%d")
-            record["amount"] = float(row[5])
+            record["value_usd"] = float(row[5])
             record["currency"] = row[0]
+            record["currency_rate_d_1"] = get_currency_rate_for_date(record["currency"], get_previous_day_from_date(record["date"]))
+            record["value_pln"] = round(record["value_usd"]*record["currency_rate_d_1"], 2)
+            # trzeba sprawdzic czy dobre wartosci
+            print(record)
             divs_only_report.append(record)
         elif row[6] in ["Withholding Tax"]:
             record = {}
             record["name"] = row[1]
             record["date"] = datetime.strptime(row[3], "%Y%m%d")
-            record["amount"] = float(row[5])
+            record["value_usd"] = float(row[5])
             record["currency"] = row[0]
             taxes_only_report.append(record)
     return divs_only_report, taxes_only_report
 
+
 def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
     total_tax_to_paid_in_pln = 0
-    print('--'*50)
-    print('DIVIDENDS:')
-    print('--'*50)
+    print("--" * 50)
+    print("DIVIDENDS:")
+    print("--" * 50)
 
     for received_dividend in dividends_report:
         paid_withholding_tax = next(
@@ -55,7 +67,6 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             if received_dividend["name"] in settings.MLP_STOCKS:
                 # 37% + 4%
                 tax_rate = 0.41
-            
 
             previous_date = get_previous_day_from_date(received_dividend["date"])
             currency_rate = get_currency_rate_for_date(
@@ -72,17 +83,16 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
             )
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
-            print(received_dividend)
-            print(f"Rate {received_dividend['currency']}: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax rate: {tax_rate*100}% - Tax PLN: {tax_to_paid_in_pln}")
-            print('--'*50)
-    
+            # print(received_dividend)
+            # print(
+            #     f"Rate {received_dividend['currency']}: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax rate: {tax_rate*100}% - Tax PLN: {tax_to_paid_in_pln}"
+            # )
+            # print("--" * 50)
+
     return total_tax_to_paid_in_pln
 
-def get_summary_dividends_tax():
-    report = open_csv_file()
-    dividends_report, taxes_report = get_relevant_data_from_report(report)
-    total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
-    return total_tax_to_paid_in_pln
+
+
 
 if __name__ == "__main__":
     get_summary_dividends_tax()
