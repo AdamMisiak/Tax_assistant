@@ -35,8 +35,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             record["currency"] = row[0]
             record["currency_rate_d_1"] = get_currency_rate_for_date(record["currency"], get_previous_day_from_date(record["date"]))
             record["value_pln"] = round(record["value_usd"]*record["currency_rate_d_1"], 2)
-            # trzeba sprawdzic czy dobre wartosci
-            print(record)
             divs_only_report.append(record)
         elif row[6] in ["Withholding Tax"]:
             record = {}
@@ -44,15 +42,18 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
             record["date"] = datetime.strptime(row[3], "%Y%m%d")
             record["value_usd"] = float(row[5])
             record["currency"] = row[0]
+            record["currency_rate_d_1"] = get_currency_rate_for_date(record["currency"], get_previous_day_from_date(record["date"]))
+            record["value_pln"] = round(record["value_usd"]*record["currency_rate_d_1"], 2)
             taxes_only_report.append(record)
     return divs_only_report, taxes_only_report
 
 
 def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
     total_tax_to_paid_in_pln = 0
-    print("--" * 50)
-    print("DIVIDENDS:")
-    print("--" * 50)
+    tax_rate = 0.19
+    # print("--" * 50)
+    # print("DIVIDENDS:")
+    # print("--" * 50)
 
     for received_dividend in dividends_report:
         paid_withholding_tax = next(
@@ -73,10 +74,10 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 received_dividend["currency"], previous_date
             )
             received_dividend_in_pln = round(
-                received_dividend["amount"] * currency_rate, 2
+                received_dividend["value_usd"] * currency_rate, 2
             )
             paid_withholding_tax_in_pln = round(
-                paid_withholding_tax["amount"] * currency_rate * -1, 2
+                paid_withholding_tax["value_usd"] * currency_rate * -1, 2
             )
             tax_to_paid_in_pln = round(
                 tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2
