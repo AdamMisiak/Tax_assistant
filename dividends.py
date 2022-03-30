@@ -26,7 +26,6 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
-        print(row)
         if row[6] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
@@ -63,37 +62,17 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 taxes_report,
             )
         )
+        
         if received_dividend["currency"] != settings.PLN_CURRENCY:
             tax_rate = 0.19
             if received_dividend["name"] in settings.MLP_STOCKS:
                 # 37% + 4%
                 tax_rate = 0.41
 
-            previous_date = get_previous_day_from_date(received_dividend["date"])
-            currency_rate = get_currency_rate_for_date(
-                received_dividend["currency"], previous_date
-            )
-            received_dividend_in_pln = round(
-                received_dividend["value_usd"] * currency_rate, 2
-            )
-            paid_withholding_tax_in_pln = round(
-                paid_withholding_tax["value_usd"] * currency_rate * -1, 2
-            )
             tax_to_paid_in_pln = round(
-                tax_rate * received_dividend_in_pln - paid_withholding_tax_in_pln, 2
+                tax_rate * received_dividend['value_pln'] + paid_withholding_tax['value_pln'], 2
             )
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
-            # print(received_dividend)
-            # print(
-            #     f"Rate {received_dividend['currency']}: {currency_rate} - Div PLN: {received_dividend_in_pln} - Tax rate: {tax_rate*100}% - Tax PLN: {tax_to_paid_in_pln}"
-            # )
-            # print("--" * 50)
+    return round(total_tax_to_paid_in_pln, 2)
 
-    return total_tax_to_paid_in_pln
-
-
-
-
-if __name__ == "__main__":
-    get_summary_dividends_tax()
