@@ -5,11 +5,13 @@ import requests
 import re
 from settings import PLN_CURRENCY
 
-def get_csv_file_with_rates(year: str):
+def get_csv_file_with_rates(year: str, path: str):
     response = requests.get(
         f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True
     )
-    open(f"data/RATES{year}.csv", "w").write(response.content.decode("ISO-8859-2"))
+    file = open(f"{path}/RATES{year}.csv", "x")
+    file.write(response.content.decode("ISO-8859-2"))
+    file.close()
 
 
 def get_data_from_csv_file_with_rates(year: str):
