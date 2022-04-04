@@ -4,14 +4,17 @@ import settings
 import requests
 import re
 from settings import PLN_CURRENCY
+from os.path import exists
+
 
 def get_csv_file_with_rates(year: str, path: str):
     response = requests.get(
         f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True
     )
-    file = open(f"{path}/RATES{year}.csv", "x")
-    file.write(response.content.decode("ISO-8859-2"))
-    file.close()
+    if not exists(f"{path}/RATES{year}.csv"):
+        file = open(f"{path}/RATES{year}.csv", "x")
+        file.write(response.content.decode("ISO-8859-2"))
+        file.close()
 
 
 def get_data_from_csv_file_with_rates(year: str):
@@ -41,23 +44,6 @@ def get_previous_day_from_date(date: datetime) -> datetime:
     if isinstance(date, datetime):
         result = date - timedelta(days=1)
         return result
-    # elif isinstance(date, str) and not "-" in date:
-    #     year = date[:4]
-    #     month = date[4:6]
-    #     day = date[6:8]
-    #     date_in_string_format = f"{day}-{month}-{year}"
-    #     date_in_datetime_format = datetime.strptime(date_in_string_format, "%d-%m-%Y")
-    #     result = date_in_datetime_format - timedelta(days=1)
-    #     return result
-    # elif isinstance(date, str) and "-" in date:
-    #     date = date.split("-")
-    #     year = date[0]
-    #     month = date[1]
-    #     day = date[2]
-    #     date_in_string_format = f"{day}-{month}-{year}"
-    #     date_in_datetime_format = datetime.strptime(date_in_string_format, "%d-%m-%Y")
-    #     result = date_in_datetime_format - timedelta(days=1)
-    # return result
 
 
 def get_currency_rate_for_date(currency: str, date: datetime) -> float:
@@ -84,20 +70,3 @@ def get_currency_rate_for_date(currency: str, date: datetime) -> float:
             None,
         )
     return rates[index_of_proper_date][currency]
-
-
-# not used in divs
-def get_currency_rate_for_date_api(currency: str, date: str) -> float:
-    date = date.strftime("%Y-%m-%d")
-    url = settings.URL_BASE + date
-    response = requests.get(url, {"format": "api"})
-    # this day is holiday/weekend, take previous day
-    while response.status_code == 404:
-        date = get_previous_day_from_date(date)
-        date = date.strftime("%Y-%m-%d")
-        url = settings.URL_BASE + date
-        response = requests.get(url, {"format": "api"})
-    for rate in response.json()[0]["rates"]:
-        if rate["code"] == currency:
-            result = rate["mid"]
-    return result
