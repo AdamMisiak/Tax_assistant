@@ -29,3 +29,13 @@ class TestUtils(TestCase):
         previous_date = utils.get_previous_day_from_date(current_date)
         self.assertEqual(previous_date, current_date - timedelta(days=1))
         self.assertEqual(previous_date.day, (current_date - timedelta(days=1)).day)
+
+    def test_get_currency_rate_of_usd(self):
+        date_to_test = datetime(year=2021, month=6, day=17)
+        currency_rate = utils.get_currency_rate_for_date('USD', date_to_test)
+        self.assertEqual(currency_rate, 3.7931)
+
+    def test_get_currency_rate_of_pln(self):
+        date_to_test = datetime(year=2021, month=6, day=17)
+        currency_rate = utils.get_currency_rate_for_date('PLN', date_to_test)
+        self.assertEqual(currency_rate, 1)
