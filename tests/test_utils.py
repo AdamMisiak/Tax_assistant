@@ -35,6 +35,11 @@ class TestUtils(TestCase):
         currency_rate = utils.get_currency_rate_for_date('USD', date_to_test)
         self.assertEqual(currency_rate, 3.7931)
 
+    def test_get_currency_rate_of_gbp(self):
+        date_to_test = datetime(year=2021, month=2, day=2)
+        currency_rate = utils.get_currency_rate_for_date('GBP', date_to_test)
+        self.assertEqual(currency_rate, 5.1069)
+
     def test_get_currency_rate_of_pln(self):
         date_to_test = datetime(year=2021, month=6, day=17)
         currency_rate = utils.get_currency_rate_for_date('PLN', date_to_test)
