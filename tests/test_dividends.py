@@ -16,6 +16,12 @@ class TestDividends(TestCase):
         dividends_report, taxes_report = dividends.get_relevant_data_from_report(report)
         self.assertTrue(isinstance(dividends_report, list))
         self.assertTrue(isinstance(taxes_report, list))
-        # TODO Add more tests for content of reports
+        self.assertTrue(isinstance(dividends_report[0], dict))
+        self.assertTrue(isinstance(dividends_report[0], dict))
+        self.assertTrue(isinstance(taxes_report[0], dict))
+        self.assertTrue('currency_rate_d_1' in dividends_report[0])
+        self.assertTrue('currency_rate_d_1' in taxes_report[0])
+        self.assertTrue('value_pln' in dividends_report[0])
+        self.assertTrue('value_pln' in taxes_report[0])
 
 
