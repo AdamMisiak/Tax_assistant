@@ -27,4 +27,8 @@ class TestDividends(TestCase):
         self.assertTrue(isinstance(dividends_report[0]['date'], datetime))
         self.assertTrue(isinstance(taxes_report[0]['date'], datetime))
 
-
+    def test_calculate_tax_to_pay(self):
+        report = dividends.open_csv_file()
+        dividends_report, taxes_report = dividends.get_relevant_data_from_report(report)
+        tax = dividends.calculate_tax_to_pay(dividends_report, taxes_report)
+        self.assertTrue(isinstance(tax, float))
