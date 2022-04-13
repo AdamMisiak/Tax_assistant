@@ -1,5 +1,6 @@
 from unittest import TestCase
 import dividends
+from datetime import datetime
 
 class TestDividends(TestCase):
     def test_get_summary_dividends_tax(self):
@@ -23,5 +24,7 @@ class TestDividends(TestCase):
         self.assertTrue('currency_rate_d_1' in taxes_report[0])
         self.assertTrue('value_pln' in dividends_report[0])
         self.assertTrue('value_pln' in taxes_report[0])
+        self.assertTrue(isinstance(dividends_report[0]['date'], datetime))
+        self.assertTrue(isinstance(taxes_report[0]['date'], datetime))
 
 
