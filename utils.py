@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import csv
-import settings
 import requests
 import re
 from settings import PLN_CURRENCY

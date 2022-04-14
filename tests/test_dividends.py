@@ -2,6 +2,7 @@ from unittest import TestCase
 import dividends
 from datetime import datetime
 
+
 class TestDividends(TestCase):
     def test_get_summary_dividends_tax(self):
         tax_to_paid = dividends.get_summary_dividends_tax()
@@ -10,7 +11,7 @@ class TestDividends(TestCase):
     def test_open_csv_file(self):
         rows = dividends.open_csv_file()
         self.assertTrue(isinstance(rows, list))
-        self.assertEqual(rows[0][0], 'USD')
+        self.assertEqual(rows[0][0], "USD")
 
     def test_get_relevant_data_from_report(self):
         report = dividends.open_csv_file()
@@ -20,12 +21,12 @@ class TestDividends(TestCase):
         self.assertTrue(isinstance(dividends_report[0], dict))
         self.assertTrue(isinstance(dividends_report[0], dict))
         self.assertTrue(isinstance(taxes_report[0], dict))
-        self.assertTrue('currency_rate_d_1' in dividends_report[0])
-        self.assertTrue('currency_rate_d_1' in taxes_report[0])
-        self.assertTrue('value_pln' in dividends_report[0])
-        self.assertTrue('value_pln' in taxes_report[0])
-        self.assertTrue(isinstance(dividends_report[0]['date'], datetime))
-        self.assertTrue(isinstance(taxes_report[0]['date'], datetime))
+        self.assertTrue("currency_rate_d_1" in dividends_report[0])
+        self.assertTrue("currency_rate_d_1" in taxes_report[0])
+        self.assertTrue("value_pln" in dividends_report[0])
+        self.assertTrue("value_pln" in taxes_report[0])
+        self.assertTrue(isinstance(dividends_report[0]["date"], datetime))
+        self.assertTrue(isinstance(taxes_report[0]["date"], datetime))
 
     def test_calculate_tax_to_pay(self):
         report = dividends.open_csv_file()

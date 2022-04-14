@@ -4,11 +4,13 @@ import settings
 from datetime import datetime
 from utils import get_previous_day_from_date, get_currency_rate_for_date
 
+
 def get_summary_options_tax():
     report = merge_csv_files()
     options_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(options_report)
     return total_tax_to_paid_in_pln
+
 
 def merge_csv_files():
     rows = []
@@ -16,6 +18,7 @@ def merge_csv_files():
     for file in files:
         rows += open_csv_file(f"data/{file}")
     return rows
+
 
 def open_csv_file(file):
     rows = []
@@ -26,6 +29,7 @@ def open_csv_file(file):
             if row[0] != settings.HEADERS_OF_CSV_FILE:
                 rows.append(row[0].replace('"', "").split("|"))
         return rows
+
 
 def get_relevant_data_from_report(report: list) -> list:
     options_report = []
@@ -40,8 +44,12 @@ def get_relevant_data_from_report(report: list) -> list:
             record["currency"] = row[0]
             record["price"] = round(float(row[5]), 2)
             record["value_usd"] = round(float(row[6]), 2)
-            record["currency_rate_d_1"] = get_currency_rate_for_date(record["currency"], get_previous_day_from_date(record["date"]))
-            record["value_pln"] = round(record["value_usd"]*record["currency_rate_d_1"], 2)
+            record["currency_rate_d_1"] = get_currency_rate_for_date(
+                record["currency"], get_previous_day_from_date(record["date"])
+            )
+            record["value_pln"] = round(
+                record["value_usd"] * record["currency_rate_d_1"], 2
+            )
             options_report.append(record)
         id += 1
     return options_report
@@ -55,8 +63,8 @@ def calculate_tax_to_pay(options_report: list) -> float:
     # print("--" * 50)
 
     for option in options_report:
-        if option['amount'] < 0:
-            tax_to_paid_in_pln = round(tax_rate * option['value_pln'], 2)
+        if option["amount"] < 0:
+            tax_to_paid_in_pln = round(tax_rate * option["value_pln"], 2)
             total_tax_to_paid_in_pln += tax_to_paid_in_pln
             # TODO: check option which was sold and then bought again - only some values in sold ones - example 2021 BYSI stocks
 
