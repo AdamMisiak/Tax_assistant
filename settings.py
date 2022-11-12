@@ -1,9 +1,9 @@
-DIVIDEND_FILE_CSV = "data/DIVIDENDS2022.csv"
-STOCKS_FILE_CSV = "data/STOCKS.csv"
-URL_BASE = "https://api.nbp.pl/api/exchangerates/tables/a/"
-URL_BASE_FILE = "https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls"
+YEAR = "2022"
+
+DIVIDEND_FILE_CSV = f"data/DIVIDENDS{YEAR}.csv"
+
+URL_NBP_RATES_API = "https://api.nbp.pl/api/exchangerates/tables/a/"
+
 PLN_CURRENCY = "PLN"
 MLP_STOCKS = ["SHLX"]
 HEADERS_OF_CSV_FILE = "CurrencyPrimary|AssetClass|Symbol|TradeDate|Quantity|TradePrice|NetCash|TransactionID"
-YEAR = "2021"
-ROWS_TO_DELETE_IN_CSV = [0, 1, 256, 257, 258, 259]
