@@ -5,7 +5,7 @@ from utils import get_previous_day_from_date, get_currency_rate_for_date
 from datetime import datetime
 
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
-
+# TODO refactor these functions
 
 def get_summary_dividends_tax():
     report = open_csv_file()
@@ -28,11 +28,12 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
     divs_only_report = []
     taxes_only_report = []
     for row in report:
-        if row[6] in ["Dividends"]:
+        print(row)
+        if row[5] in ["Dividends"]:
             record = {}
             record["name"] = row[1]
-            record["date"] = datetime.strptime(row[3], "%Y%m%d")
-            record["value_usd"] = float(row[5])
+            record["date"] = datetime.strptime(row[3].split(';')[0], "%Y%m%d")
+            record["value_usd"] = float(row[4])
             record["currency"] = row[0]
             record["currency_rate_d_1"] = get_currency_rate_for_date(
                 record["currency"], get_previous_day_from_date(record["date"])
@@ -41,11 +42,11 @@ def get_relevant_data_from_report(report: list) -> Tuple[list, list]:
                 record["value_usd"] * record["currency_rate_d_1"], 2
             )
             divs_only_report.append(record)
-        elif row[6] in ["Withholding Tax"]:
+        elif row[5] in ["Withholding Tax"]:
             record = {}
             record["name"] = row[1]
-            record["date"] = datetime.strptime(row[3], "%Y%m%d")
-            record["value_usd"] = float(row[5])
+            record["date"] = datetime.strptime(row[3].split(';')[0], "%Y%m%d")
+            record["value_usd"] = float(row[4])
             record["currency"] = row[0]
             record["currency_rate_d_1"] = get_currency_rate_for_date(
                 record["currency"], get_previous_day_from_date(record["date"])
@@ -71,7 +72,7 @@ def calculate_tax_to_pay(dividends_report: list, taxes_report: list) -> float:
                 and tax["date"] == received_dividend["date"],
                 taxes_report,
             )
-        )
+        , {"value_pln": 0})
 
         if received_dividend["currency"] != settings.PLN_CURRENCY:
             tax_rate = 0.19
