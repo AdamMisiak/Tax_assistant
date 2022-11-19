@@ -151,3 +151,4 @@ cython_debug/
 
 /data
 /tests/data
+credentials.json
