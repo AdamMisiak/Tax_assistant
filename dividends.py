@@ -18,7 +18,11 @@ load_dotenv()
 
 with open("credentials.json") as json_file:
     credentials_json = json.load(json_file)
-google_workbook = GoogleWorkbook(credentials_json=credentials_json, sheet_url=os.getenv("google_sheet_url"))
+google_workbook = GoogleWorkbook(
+    credentials_json=credentials_json,
+    sheet_url=os.getenv("google_sheet_url"),
+    sheet_parameters={"value_render_option": "FORMULA"},
+)
 sheet = google_workbook.pull_sheet("Div History")
 
 # TODO create class here for divs only
@@ -105,10 +109,10 @@ def save_record_to_gsheet(received_dividend):
     # print(received_dividend)
     print(sheet.number_of_rows)
     print(sheet.headers)
-    sheet.batch_add_single_cell(index=sheet.number_of_rows - 1, column=sheet.headers[1], value="Interactive Brokers")
-    sheet.execute_batch()
-    # for row in sheet.sheet_data:
-    #     print(row)
+    # sheet.batch_add_single_cell(index=sheet.number_of_rows - 1, column=sheet.headers[1], value="Interactive Brokers")
+    # sheet.execute_batch()
+    for row in sheet.sheet_data:
+        print(row)
 
 
 # google_workbook = GoogleWorkbook(credentials_json=credentials_json, sheet_url="os.getenv('google_sheet_url')")
