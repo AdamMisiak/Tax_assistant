@@ -12,6 +12,7 @@ class GoogleSheet:
         self.sheet_data = self.worksheet.get_all_records(**self.parameters)
         self.headers = self.get_headers()
         self._batch = []
+        self.number_of_rows = len(self.sheet_data) + 1
 
     def get_headers(self) -> List[str]:
         if len(self.sheet_data) == 0:
@@ -21,6 +22,7 @@ class GoogleSheet:
     def refresh_data(self) -> List[dict]:
         self.sheet_data = self.worksheet.get_all_records(**self.parameters)
         self.headers = self.get_headers()
+        self.number_of_rows = len(self.sheet_data) + 1
         return self.sheet_data
 
     @staticmethod
