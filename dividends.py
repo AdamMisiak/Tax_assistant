@@ -106,21 +106,29 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
 
 
 def save_record_to_gsheet(received_dividend):
-    # print(received_dividend)
-    print(sheet.number_of_rows)
-    print(sheet.headers)
-    # sheet.batch_add_single_cell(index=sheet.number_of_rows - 1, column=sheet.headers[1], value="Interactive Brokers")
-    # sheet.execute_batch()
-    for row in sheet.sheet_data:
-        print(row)
+    print(received_dividend)
+    sheet.batch_add_multiple_cells(
+        cell_list=[
+            (sheet.number_of_rows - 1, sheet.headers[0], received_dividend.get("date").strftime("%d-%m-%Y")),
+            (sheet.number_of_rows - 1, sheet.headers[1], "Interactive Brokers"),
+            (sheet.number_of_rows - 1, sheet.headers[2], received_dividend.get("name")),
+            (sheet.number_of_rows - 1, sheet.headers[4], received_dividend.get("currency")),
+            (
+                sheet.number_of_rows - 1,
+                sheet.headers[5],
+                f"=NBP_RATE_BEFORE(E{sheet.number_of_rows+1};A{sheet.number_of_rows+1})",
+            ),
+            (sheet.number_of_rows - 1, sheet.headers[6], received_dividend.get("value_usd")),
+            (sheet.number_of_rows - 1, sheet.headers[7], f"=G{sheet.number_of_rows+1}*F{sheet.number_of_rows+1}"),
+        ]
+    )
+    # print(sheet.sheet_data[-1])
+    # last row to copy from
+    sheet.execute_batch()
 
+    # TODO how to get number of stocks - maybe some formula in ghseet?
 
-# google_workbook = GoogleWorkbook(credentials_json=credentials_json, sheet_url="os.getenv('google_sheet_url')")
-# sheet = google_workbook.pull_sheet("Div History")
-# for row in sheet.sheet_data:
-#     print(row)
+    # TODO change header[0] to name? refactor this to iterate over some dict?
 
-# sheet.batch_add_single_cell(
-#     index=160+2, column="Comments", value="TEST"
-# )
-# sheet.execute_batch()
+    # TODO add coping formulas in next steps?
+    # https://stackoverflow.com/questions/41992091/how-to-copy-a-formula-from-one-gsheet-to-another-using-python
