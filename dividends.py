@@ -21,7 +21,9 @@ with open("credentials.json") as json_file:
 google_workbook = GoogleWorkbook(
     credentials_json=credentials_json,
     sheet_url=os.getenv("google_sheet_url"),
-    sheet_parameters={"value_render_option": "FORMULA"},
+    sheet_parameters={
+        "value_render_option": "FORMULA",
+    },
 )
 sheet = google_workbook.pull_sheet("Div History")
 
@@ -124,7 +126,9 @@ def save_record_to_gsheet(received_dividend):
     )
     # print(sheet.sheet_data[-1])
     # last row to copy from
-    sheet.execute_batch()
+    # value_input_option="USER_ENTERED" fix for single quote issue
+    sheet.execute_batch(value_input_option="USER_ENTERED")
+    print("SAVED ROW NR", sheet.number_of_rows - 1)
 
     # TODO how to get number of stocks - maybe some formula in ghseet?
 
