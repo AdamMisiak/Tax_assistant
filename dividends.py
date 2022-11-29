@@ -79,7 +79,7 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
     total_tax_to_paid_in_pln = 0
     tax_rate = 0.19
 
-    for received_dividend in dividends_report:
+    for index, received_dividend in enumerate(dividends_report[:5], 1):
         # TODO maybe try except with some print to notify user?
         paid_withholding_tax = next(
             filter(
@@ -90,8 +90,8 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
             {"value_pln": 0},
         )
 
-        save_record_to_gsheet(received_dividend)
-        break
+        save_record_to_gsheet(received_dividend, index)
+        sheet.execute_batch(value_input_option="USER_ENTERED")
 
         # if received_dividend["currency"] != settings.PLN_CURRENCY:
         if received_dividend["name"] in settings.MLP_STOCKS:
@@ -107,32 +107,38 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
     return round(total_tax_to_paid_in_pln, 2)
 
 
-def save_record_to_gsheet(received_dividend):
+def save_record_to_gsheet(received_dividend, iterator):
     print(received_dividend)
+    next_row_number = sheet.number_of_rows+iterator
     sheet.batch_add_multiple_cells(
         cell_list=[
-            (sheet.number_of_rows - 1, sheet.headers[0], received_dividend.get("date").strftime("%d-%m-%Y")),
-            (sheet.number_of_rows - 1, sheet.headers[1], "Interactive Brokers"),
-            (sheet.number_of_rows - 1, sheet.headers[2], received_dividend.get("name")),
-            (sheet.number_of_rows - 1, sheet.headers[4], received_dividend.get("currency")),
+            (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
+            (next_row_number, "Broker", "Interactive Brokers"),
+            (next_row_number, "Ticker", received_dividend.get("name")),
+            (next_row_number, "Currency", received_dividend.get("currency")),
             (
-                sheet.number_of_rows - 1,
-                sheet.headers[5],
-                f"=NBP_RATE_BEFORE(E{sheet.number_of_rows+1};A{sheet.number_of_rows+1})",
+                next_row_number,
+                "Currency rate date - 1",
+                f"=NBP_RATE_BEFORE(E{next_row_number};A{next_row_number})",
             ),
-            (sheet.number_of_rows - 1, sheet.headers[6], received_dividend.get("value_usd")),
-            (sheet.number_of_rows - 1, sheet.headers[7], f"=G{sheet.number_of_rows+1}*F{sheet.number_of_rows+1}"),
-        ]
+            (next_row_number, "Div before tax [CUR]", received_dividend.get("value_usd")),
+            (next_row_number, "Div before tax [PLN]", f"=G{next_row_number}*F{next_row_number}"),
+            (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
+            (next_row_number, "Tax paid %", "15%"),
+            (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
+            (next_row_number, "Tax paid [PLN]", f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})'),
+            (next_row_number, "Div after tax [CUR]", f'=G{next_row_number}+K{next_row_number}'),
+            (next_row_number, "Div after tax [PLN]", f'=H{next_row_number}+L{next_row_number}'),
+            (next_row_number, "Tax paid PL %", "4%"),
+            (next_row_number, "Tax paid PL [PLN]", f'=O{next_row_number}*H{next_row_number}'),
+        ],
+        python_dict_indexing=False
     )
-    # print(sheet.sheet_data[-1])
-    # last row to copy from
     # value_input_option="USER_ENTERED" fix for single quote issue
-    sheet.execute_batch(value_input_option="USER_ENTERED")
-    print("SAVED ROW NR", sheet.number_of_rows - 1)
+    # sheet.execute_batch(value_input_option="USER_ENTERED")
+    print("SAVED ROW NR", next_row_number)
+
 
     # TODO how to get number of stocks - maybe some formula in ghseet?
 
-    # TODO change header[0] to name? refactor this to iterate over some dict?
-
-    # TODO add coping formulas in next steps?
-    # https://stackoverflow.com/questions/41992091/how-to-copy-a-formula-from-one-gsheet-to-another-using-python
+    # NOTE maybe save number of stocks in redis?
