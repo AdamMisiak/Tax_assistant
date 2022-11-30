@@ -1,7 +1,6 @@
 # pylint: disable=W0640
 # cell-var-from-loop
 import csv
-import json
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
@@ -13,11 +12,25 @@ from gsheet import GoogleWorkbook
 from utils import get_currency_rate_for_date, get_previous_day_from_date
 
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
-
 load_dotenv()
 
-with open("credentials.json") as json_file:
-    credentials_json = json.load(json_file)
+# class DividendHandler():
+
+#     def __init__(self) -> None:
+
+
+credentials_json = {
+    "type": os.getenv("type"),
+    "project_id": os.getenv("project_id"),
+    "private_key_id": os.getenv("private_key_id"),
+    "private_key": os.getenv("private_key"),
+    "client_email": os.getenv("client_email"),
+    "client_id": os.getenv("client_id"),
+    "auth_uri": os.getenv("auth_uri"),
+    "token_uri": os.getenv("token_uri"),
+    "auth_provider_x509_cert_url": os.getenv("auth_provider_x509_cert_url"),
+    "client_x509_cert_url": os.getenv("client_x509_cert_url"),
+}
 google_workbook = GoogleWorkbook(
     credentials_json=credentials_json,
     sheet_url=os.getenv("google_sheet_url"),
@@ -79,7 +92,7 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
     total_tax_to_paid_in_pln = 0
     tax_rate = 0.19
 
-    for index, received_dividend in enumerate(dividends_report[:5], 1):
+    for index, received_dividend in enumerate(dividends_report, 1):
         # TODO maybe try except with some print to notify user?
         paid_withholding_tax = next(
             filter(
@@ -109,7 +122,7 @@ def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: L
 
 def save_record_to_gsheet(received_dividend, iterator):
     print(received_dividend)
-    next_row_number = sheet.number_of_rows+iterator
+    next_row_number = sheet.number_of_rows + iterator
     sheet.batch_add_multiple_cells(
         cell_list=[
             (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
@@ -126,19 +139,20 @@ def save_record_to_gsheet(received_dividend, iterator):
             (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
             (next_row_number, "Tax paid %", "15%"),
             (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
-            (next_row_number, "Tax paid [PLN]", f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})'),
-            (next_row_number, "Div after tax [CUR]", f'=G{next_row_number}+K{next_row_number}'),
-            (next_row_number, "Div after tax [PLN]", f'=H{next_row_number}+L{next_row_number}'),
+            (
+                next_row_number,
+                "Tax paid [PLN]",
+                f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})',
+            ),
+            (next_row_number, "Div after tax [CUR]", f"=G{next_row_number}+K{next_row_number}"),
+            (next_row_number, "Div after tax [PLN]", f"=H{next_row_number}+L{next_row_number}"),
             (next_row_number, "Tax paid PL %", "4%"),
-            (next_row_number, "Tax paid PL [PLN]", f'=O{next_row_number}*H{next_row_number}'),
+            (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
         ],
-        python_dict_indexing=False
+        python_dict_indexing=False,
     )
     # value_input_option="USER_ENTERED" fix for single quote issue
     # sheet.execute_batch(value_input_option="USER_ENTERED")
     print("SAVED ROW NR", next_row_number)
 
-
     # TODO how to get number of stocks - maybe some formula in ghseet?
-
-    # NOTE maybe save number of stocks in redis?
