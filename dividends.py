@@ -3,7 +3,7 @@
 import csv
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from dotenv import load_dotenv
 
@@ -37,12 +37,14 @@ class DividendHandler:
             },
         )
         self.sheet = self.google_workbook.pull_sheet(os.getenv("tab_name"))
+        self.total_tax_to_paid_in_pln = 0
+        self.tax_rate = 0.19
 
     def calculate_dividend_tax(self) -> float:
         report = self.get_csv_report()
         dividends = self.fetch_relevant_data(report, "Dividends")
         taxes = self.fetch_relevant_data(report, "Withholding Tax")
-        return report
+        return self.calculate_tax_to_pay(dividends, taxes)
 
     def get_csv_report(self) -> List[List[str]]:
         with open(file=settings.DIVIDEND_FILE_CSV, mode="r", encoding="utf-8") as file:
@@ -54,7 +56,7 @@ class DividendHandler:
         for row in report:
             if row[5] == filtered_field:
                 record = {}
-                record["name"] = row[1]
+                record["ticker"] = row[1]
                 record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
                 record["value_usd"] = float(row[4])
                 record["currency"] = row[0]
@@ -65,110 +67,74 @@ class DividendHandler:
                 results.append(record)
         return results
 
-    def calculate_tax_to_pay(self, dividends_report: List[Dict[str, Any]], taxes_report: List[Dict[str, Any]]) -> float:
-        total_tax_to_paid_in_pln = 0
-        tax_rate = 0.19
+    def calculate_tax_to_pay(self, dividends: List[Dict[str, Any]], taxes: List[Dict[str, Any]]) -> float:
 
-        for index, received_dividend in enumerate(dividends_report, 1):
-            # TODO maybe try except with some print to notify user?
-            paid_withholding_tax = next(
-                filter(
-                    lambda paid_tax: paid_tax["name"] == received_dividend["name"]
-                    and paid_tax["date"] == received_dividend["date"],
-                    taxes_report,
-                ),
-                {"value_pln": 0},
-            )
+        for index, received_dividend in enumerate(dividends, 1):
+            matching_paid_tax = self.get_matching_paid_tax(received_dividend["ticker"], received_dividend["date"], taxes)
 
-            save_record_to_gsheet(received_dividend, index)
-            sheet.execute_batch(value_input_option="USER_ENTERED")
+            # save_record_to_gsheet(received_dividend, index)
+            # sheet.execute_batch(value_input_option="USER_ENTERED")
 
-            # if received_dividend["currency"] != settings.PLN_CURRENCY:
-            if received_dividend["name"] in settings.MLP_STOCKS:
+            # if received_dividend["name"] in settings.MLP_STOCKS:
                 # 37% + 4%
-                tax_rate = 0.41
+                # tax_rate = 0.41
 
             tax_to_paid_in_pln = round(
-                tax_rate * received_dividend["value_pln"] + paid_withholding_tax["value_pln"],
+                self.tax_rate * received_dividend["value_pln"] + matching_paid_tax["value_pln"],
                 2,
             )
-            total_tax_to_paid_in_pln += tax_to_paid_in_pln
+            self.total_tax_to_paid_in_pln += tax_to_paid_in_pln
 
-        return round(total_tax_to_paid_in_pln, 2)
+        return round(self.total_tax_to_paid_in_pln, 2)
 
-
-def get_summary_dividends_tax() -> float:
-    report = open_csv_file()
-    dividends_report, taxes_report = get_relevant_data_from_report(report)
-    total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
-    return total_tax_to_paid_in_pln
-
-
-def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: List[Dict[str, Any]]) -> float:
-    total_tax_to_paid_in_pln = 0
-    tax_rate = 0.19
-
-    for index, received_dividend in enumerate(dividends_report, 1):
-        # TODO maybe try except with some print to notify user?
-        paid_withholding_tax = next(
+    def get_matching_paid_tax(self, ticker: str, date: datetime, taxes: List[Dict[str, Any]]) -> Dict[str, Any]:
+        return next(
             filter(
-                lambda paid_tax: paid_tax["name"] == received_dividend["name"]
-                and paid_tax["date"] == received_dividend["date"],
-                taxes_report,
+                lambda paid_tax: paid_tax["ticker"] == ticker
+                and paid_tax["date"] == date,
+                taxes,
             ),
             {"value_pln": 0},
         )
 
-        save_record_to_gsheet(received_dividend, index)
-        sheet.execute_batch(value_input_option="USER_ENTERED")
 
-        # if received_dividend["currency"] != settings.PLN_CURRENCY:
-        if received_dividend["name"] in settings.MLP_STOCKS:
-            # 37% + 4%
-            tax_rate = 0.41
+# def save_record_to_gsheet(received_dividend, iterator):
+#     print(received_dividend)
+#     next_row_number = sheet.number_of_rows + iterator
+#     sheet.batch_add_multiple_cells(
+#         cell_list=[
+#             (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
+#             (next_row_number, "Broker", "Interactive Brokers"),
+#             (next_row_number, "Ticker", received_dividend.get("name")),
+#             (next_row_number, "Currency", received_dividend.get("currency")),
+#             (
+#                 next_row_number,
+#                 "Currency rate date - 1",
+#                 f"=NBP_RATE_BEFORE(E{next_row_number};A{next_row_number})",
+#             ),
+#             (next_row_number, "Div before tax [CUR]", received_dividend.get("value_usd")),
+#             (next_row_number, "Div before tax [PLN]", f"=G{next_row_number}*F{next_row_number}"),
+#             (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
+#             (next_row_number, "Tax paid %", "15%"),
+#             (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
+#             (
+#                 next_row_number,
+#                 "Tax paid [PLN]",
+#                 f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})',
+#             ),
+#             (next_row_number, "Div after tax [CUR]", f"=G{next_row_number}+K{next_row_number}"),
+#             (next_row_number, "Div after tax [PLN]", f"=H{next_row_number}+L{next_row_number}"),
+#             (next_row_number, "Tax paid PL %", "4%"),
+#             (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
+#         ],
+#         python_dict_indexing=False,
+    # )
+    # print("SAVED ROW NR", next_row_number)
 
-        tax_to_paid_in_pln = round(
-            tax_rate * received_dividend["value_pln"] + paid_withholding_tax["value_pln"],
-            2,
-        )
-        total_tax_to_paid_in_pln += tax_to_paid_in_pln
-
-    return round(total_tax_to_paid_in_pln, 2)
 
 
-def save_record_to_gsheet(received_dividend, iterator):
-    print(received_dividend)
-    next_row_number = sheet.number_of_rows + iterator
-    sheet.batch_add_multiple_cells(
-        cell_list=[
-            (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
-            (next_row_number, "Broker", "Interactive Brokers"),
-            (next_row_number, "Ticker", received_dividend.get("name")),
-            (next_row_number, "Currency", received_dividend.get("currency")),
-            (
-                next_row_number,
-                "Currency rate date - 1",
-                f"=NBP_RATE_BEFORE(E{next_row_number};A{next_row_number})",
-            ),
-            (next_row_number, "Div before tax [CUR]", received_dividend.get("value_usd")),
-            (next_row_number, "Div before tax [PLN]", f"=G{next_row_number}*F{next_row_number}"),
-            (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
-            (next_row_number, "Tax paid %", "15%"),
-            (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
-            (
-                next_row_number,
-                "Tax paid [PLN]",
-                f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})',
-            ),
-            (next_row_number, "Div after tax [CUR]", f"=G{next_row_number}+K{next_row_number}"),
-            (next_row_number, "Div after tax [PLN]", f"=H{next_row_number}+L{next_row_number}"),
-            (next_row_number, "Tax paid PL %", "4%"),
-            (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
-        ],
-        python_dict_indexing=False,
-    )
     # value_input_option="USER_ENTERED" fix for single quote issue
     # sheet.execute_batch(value_input_option="USER_ENTERED")
-    print("SAVED ROW NR", next_row_number)
+    
 
     # TODO how to get number of stocks - maybe some formula in ghseet?
