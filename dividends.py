@@ -14,33 +14,87 @@ from utils import get_currency_rate_for_date, get_previous_day_from_date
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
 load_dotenv()
 
-# class DividendHandler():
 
-#     def __init__(self) -> None:
+class DividendHandler:
+    def __init__(self):
+        credentials_json = {
+            "type": os.getenv("type"),
+            "project_id": os.getenv("project_id"),
+            "private_key_id": os.getenv("private_key_id"),
+            "private_key": os.getenv("private_key"),
+            "client_email": os.getenv("client_email"),
+            "client_id": os.getenv("client_id"),
+            "auth_uri": os.getenv("auth_uri"),
+            "token_uri": os.getenv("token_uri"),
+            "auth_provider_x509_cert_url": os.getenv("auth_provider_x509_cert_url"),
+            "client_x509_cert_url": os.getenv("client_x509_cert_url"),
+        }
+        self.google_workbook = GoogleWorkbook(
+            credentials_json=credentials_json,
+            sheet_url=os.getenv("google_sheet_url"),
+            sheet_parameters={
+                "value_render_option": "FORMULA",
+            },
+        )
+        self.sheet = self.google_workbook.pull_sheet(os.getenv("tab_name"))
 
+    def calculate_dividend_tax(self) -> float:
+        report = self.get_csv_report()
+        dividends = self.fetch_relevant_data(report, "Dividends")
+        taxes = self.fetch_relevant_data(report, "Withholding Tax")
+        return report
 
-credentials_json = {
-    "type": os.getenv("type"),
-    "project_id": os.getenv("project_id"),
-    "private_key_id": os.getenv("private_key_id"),
-    "private_key": os.getenv("private_key"),
-    "client_email": os.getenv("client_email"),
-    "client_id": os.getenv("client_id"),
-    "auth_uri": os.getenv("auth_uri"),
-    "token_uri": os.getenv("token_uri"),
-    "auth_provider_x509_cert_url": os.getenv("auth_provider_x509_cert_url"),
-    "client_x509_cert_url": os.getenv("client_x509_cert_url"),
-}
-google_workbook = GoogleWorkbook(
-    credentials_json=credentials_json,
-    sheet_url=os.getenv("google_sheet_url"),
-    sheet_parameters={
-        "value_render_option": "FORMULA",
-    },
-)
-sheet = google_workbook.pull_sheet("Div History")
+    def get_csv_report(self) -> List[List[str]]:
+        with open(file=settings.DIVIDEND_FILE_CSV, mode="r", encoding="utf-8") as file:
+            csvreader = csv.reader(file)
+            return [row[0].replace('"', "").split("|") for row in csvreader]
 
-# TODO create class here for divs only
+    def fetch_relevant_data(self, report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
+        results = []
+        for row in report:
+            if row[5] == filtered_field:
+                record = {}
+                record["name"] = row[1]
+                record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
+                record["value_usd"] = float(row[4])
+                record["currency"] = row[0]
+                record["currency_rate_d_1"] = get_currency_rate_for_date(
+                    record["currency"], get_previous_day_from_date(record["date"])
+                )
+                record["value_pln"] = round(record["value_usd"] * record["currency_rate_d_1"], 2)
+                results.append(record)
+        return results
+
+    def calculate_tax_to_pay(self, dividends_report: List[Dict[str, Any]], taxes_report: List[Dict[str, Any]]) -> float:
+        total_tax_to_paid_in_pln = 0
+        tax_rate = 0.19
+
+        for index, received_dividend in enumerate(dividends_report, 1):
+            # TODO maybe try except with some print to notify user?
+            paid_withholding_tax = next(
+                filter(
+                    lambda paid_tax: paid_tax["name"] == received_dividend["name"]
+                    and paid_tax["date"] == received_dividend["date"],
+                    taxes_report,
+                ),
+                {"value_pln": 0},
+            )
+
+            save_record_to_gsheet(received_dividend, index)
+            sheet.execute_batch(value_input_option="USER_ENTERED")
+
+            # if received_dividend["currency"] != settings.PLN_CURRENCY:
+            if received_dividend["name"] in settings.MLP_STOCKS:
+                # 37% + 4%
+                tax_rate = 0.41
+
+            tax_to_paid_in_pln = round(
+                tax_rate * received_dividend["value_pln"] + paid_withholding_tax["value_pln"],
+                2,
+            )
+            total_tax_to_paid_in_pln += tax_to_paid_in_pln
+
+        return round(total_tax_to_paid_in_pln, 2)
 
 
 def get_summary_dividends_tax() -> float:
@@ -48,44 +102,6 @@ def get_summary_dividends_tax() -> float:
     dividends_report, taxes_report = get_relevant_data_from_report(report)
     total_tax_to_paid_in_pln = calculate_tax_to_pay(dividends_report, taxes_report)
     return total_tax_to_paid_in_pln
-
-
-def open_csv_file():
-    rows = []
-    with open(file=settings.DIVIDEND_FILE_CSV, mode="r", encoding="utf-8") as file:
-        csvreader = csv.reader(file)
-        for row in csvreader:
-            rows.append(row[0].replace('"', "").split("|"))
-        return rows
-
-
-def get_relevant_data_from_report(report: list) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-    dividends_report = []
-    taxes_report = []
-    for row in report:
-        if row[5] in ["Dividends"]:
-            record = {}
-            record["name"] = row[1]
-            record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
-            record["value_usd"] = float(row[4])
-            record["currency"] = row[0]
-            record["currency_rate_d_1"] = get_currency_rate_for_date(
-                record["currency"], get_previous_day_from_date(record["date"])
-            )
-            record["value_pln"] = round(record["value_usd"] * record["currency_rate_d_1"], 2)
-            dividends_report.append(record)
-        elif row[5] in ["Withholding Tax"]:
-            record = {}
-            record["name"] = row[1]
-            record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
-            record["value_usd"] = float(row[4])
-            record["currency"] = row[0]
-            record["currency_rate_d_1"] = get_currency_rate_for_date(
-                record["currency"], get_previous_day_from_date(record["date"])
-            )
-            record["value_pln"] = round(record["value_usd"] * record["currency_rate_d_1"], 2)
-            taxes_report.append(record)
-    return dividends_report, taxes_report
 
 
 def calculate_tax_to_pay(dividends_report: List[Dict[str, Any]], taxes_report: List[Dict[str, Any]]) -> float:
