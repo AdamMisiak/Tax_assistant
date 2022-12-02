@@ -46,12 +46,14 @@ class DividendHandler:
         taxes = self.fetch_relevant_data(report, "Withholding Tax")
         return self.calculate_tax_to_pay(dividends, taxes)
 
-    def get_csv_report(self) -> List[List[str]]:
+    @staticmethod
+    def get_csv_report() -> List[List[str]]:
         with open(file=settings.DIVIDEND_FILE_CSV, mode="r", encoding="utf-8") as file:
             csvreader = csv.reader(file)
             return [row[0].replace('"', "").split("|") for row in csvreader]
 
-    def fetch_relevant_data(self, report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
+    @staticmethod
+    def fetch_relevant_data(report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
         results = []
         for row in report:
             if row[5] == filtered_field:
@@ -68,34 +70,32 @@ class DividendHandler:
         return results
 
     def calculate_tax_to_pay(self, dividends: List[Dict[str, Any]], taxes: List[Dict[str, Any]]) -> float:
-
-        for index, received_dividend in enumerate(dividends, 1):
-            matching_paid_tax = self.get_matching_paid_tax(received_dividend["ticker"], received_dividend["date"], taxes)
-
-            # save_record_to_gsheet(received_dividend, index)
-            # sheet.execute_batch(value_input_option="USER_ENTERED")
-
-            # if received_dividend["name"] in settings.MLP_STOCKS:
-                # 37% + 4%
-                # tax_rate = 0.41
-
+        for received_dividend in dividends:
+            matching_paid_tax = self.get_matching_paid_tax(
+                received_dividend["ticker"], received_dividend["date"], taxes
+            )
             tax_to_paid_in_pln = round(
                 self.tax_rate * received_dividend["value_pln"] + matching_paid_tax["value_pln"],
                 2,
             )
             self.total_tax_to_paid_in_pln += tax_to_paid_in_pln
-
         return round(self.total_tax_to_paid_in_pln, 2)
 
-    def get_matching_paid_tax(self, ticker: str, date: datetime, taxes: List[Dict[str, Any]]) -> Dict[str, Any]:
+    @staticmethod
+    def get_matching_paid_tax(ticker: str, date: datetime, taxes: List[Dict[str, Any]]) -> Dict[str, Any]:
         return next(
             filter(
-                lambda paid_tax: paid_tax["ticker"] == ticker
-                and paid_tax["date"] == date,
+                lambda paid_tax: paid_tax["ticker"] == ticker and paid_tax["date"] == date,
                 taxes,
             ),
             {"value_pln": 0},
         )
+
+    def get_number_of_stock(self, ticker: str):
+        pass
+
+        # save_record_to_gsheet(received_dividend, index)
+        # sheet.execute_batch(value_input_option="USER_ENTERED")
 
 
 # def save_record_to_gsheet(received_dividend, iterator):
@@ -128,13 +128,12 @@ class DividendHandler:
 #             (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
 #         ],
 #         python_dict_indexing=False,
-    # )
-    # print("SAVED ROW NR", next_row_number)
+# )
+# print("SAVED ROW NR", next_row_number)
 
 
+# value_input_option="USER_ENTERED" fix for single quote issue
+# sheet.execute_batch(value_input_option="USER_ENTERED")
 
-    # value_input_option="USER_ENTERED" fix for single quote issue
-    # sheet.execute_batch(value_input_option="USER_ENTERED")
-    
 
-    # TODO how to get number of stocks - maybe some formula in ghseet?
+# TODO how to get number of stocks - maybe some formula in ghseet?
