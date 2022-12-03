@@ -1,5 +1,6 @@
 # pylint: disable=W0640
 # cell-var-from-loop
+
 import csv
 import os
 from datetime import datetime
@@ -106,7 +107,7 @@ class DividendHandler:
         )
 
     def _save_records_to_gsheet(self, dividends: List[Dict[str, Any]]):
-        for index, received_dividend in enumerate(dividends[:1], 1):
+        for index, received_dividend in enumerate(dividends, 1):
             self.save_record_to_gsheet(received_dividend, index)
             self.sheet.execute_batch(value_input_option="USER_ENTERED")
 
@@ -119,7 +120,7 @@ class DividendHandler:
                 (next_row_number, "Broker", "Interactive Brokers"),
                 (next_row_number, "Ticker", received_dividend.get("ticker")),
                 (next_row_number, "Currency", received_dividend.get("currency")),
-                (next_row_number, "#", "1"),
+                (next_row_number, "#", self._get_number_of_stock(received_dividend.get("ticker"))),
                 (
                     next_row_number,
                     "Currency rate date - 1",
@@ -143,9 +144,13 @@ class DividendHandler:
             python_dict_indexing=False,
         )
 
-    def get_number_of_stock(self, ticker: str):
-        for i in self.sheet.sheet_data:
-            print(i)
-
-
-# TODO how to get number of stocks - maybe some formula in ghseet?
+    def _get_number_of_stock(self, ticker: str) -> int:
+        return int(
+            next(
+                filter(
+                    lambda row: row["Ticker"] == ticker,
+                    reversed(self.sheet.sheet_data),
+                ),
+                {"#": 0},
+            ).get("#")
+        )
