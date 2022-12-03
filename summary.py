@@ -1,13 +1,14 @@
 import json
 
 from dividends import DividendHandler
-from gsheet import GoogleWorkbook
-from options import get_summary_options_tax
+from options import OptionHandler
 from stocks import get_summary_stocks_tax
 from utils import get_csv_file_with_rates
 
 dividend_handler = DividendHandler()
-total_dividends_tax_to_paid_in_pln = dividend_handler.save_records_to_gsheet()
+option_handler = OptionHandler()
+# total_dividends_tax_to_paid_in_pln = dividend_handler.save_records_to_gsheet()
+total_options_tax_to_paid_in_pln = option_handler.calculate_tax_to_pay()
 
 # total_tax_to_paid_in_pln_dividends = get_summary_dividends_tax()
 # # total_tax_to_paid_in_pln_stocks = get_summary_stocks_tax()

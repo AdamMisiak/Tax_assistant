@@ -55,15 +55,15 @@ class DividendHandler:
         return self._save_records_to_gsheet(report_data.get("dividends"))
 
     def get_report_data(self) -> Dict[str, List[Dict[str, Any]]]:
-        report = self.get_csv_report()
+        report = self.get_csv_report(file_name=settings.DIVIDEND_FILE_CSV)
         return {
             "dividends": self.fetch_relevant_data(report, "Dividends"),
             "taxes": self.fetch_relevant_data(report, "Withholding Tax"),
         }
 
     @staticmethod
-    def get_csv_report() -> List[List[str]]:
-        with open(file=settings.DIVIDEND_FILE_CSV, mode="r", encoding="utf-8") as file:
+    def get_csv_report(file_name: str) -> List[List[str]]:
+        with open(file=file_name, mode="r", encoding="utf-8") as file:
             csvreader = csv.reader(file)
             return [row[0].replace('"', "").split("|") for row in csvreader]
 
@@ -112,7 +112,6 @@ class DividendHandler:
             self.sheet.execute_batch(value_input_option="USER_ENTERED")
 
     def save_record_to_gsheet(self, received_dividend: Dict[str, Any], iterator: int):
-        print(received_dividend)
         next_row_number = self.sheet.number_of_rows + iterator
         self.sheet.batch_add_multiple_cells(
             cell_list=[
