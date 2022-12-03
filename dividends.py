@@ -15,6 +15,11 @@ from utils import get_currency_rate_for_date, get_previous_day_from_date
 load_dotenv()
 
 
+# TODO create TaxHandler with some basic methods
+# TODO use calculate_tax_to_pay same method in every handler,
+# changing only attributes in class
+
+
 class DividendHandler:
     def __init__(self):
         credentials_json = {
@@ -40,11 +45,20 @@ class DividendHandler:
         self.total_tax_to_paid_in_pln = 0
         self.tax_rate = 0.19
 
-    def calculate_dividend_tax(self) -> float:
+    def calculate_tax_to_pay(self) -> float:
+        report_data = self.get_report_data()
+        return self._calculate_tax_to_pay(report_data.get("dividends"), report_data.get("taxes"))
+
+    def save_records_to_gsheet(self):
+        report_data = self.get_report_data()
+        return self._save_records_to_gsheet(report_data.get("dividends"))
+
+    def get_report_data(self) -> Dict[str, List[Dict[str, Any]]]:
         report = self.get_csv_report()
-        dividends = self.fetch_relevant_data(report, "Dividends")
-        taxes = self.fetch_relevant_data(report, "Withholding Tax")
-        return self.calculate_tax_to_pay(dividends, taxes)
+        return {
+            "dividends": self.fetch_relevant_data(report, "Dividends"),
+            "taxes": self.fetch_relevant_data(report, "Withholding Tax"),
+        }
 
     @staticmethod
     def get_csv_report() -> List[List[str]]:
@@ -69,7 +83,7 @@ class DividendHandler:
                 results.append(record)
         return results
 
-    def calculate_tax_to_pay(self, dividends: List[Dict[str, Any]], taxes: List[Dict[str, Any]]) -> float:
+    def _calculate_tax_to_pay(self, dividends: List[Dict[str, Any]], taxes: List[Dict[str, Any]]) -> float:
         for received_dividend in dividends:
             matching_paid_tax = self.get_matching_paid_tax(
                 received_dividend["ticker"], received_dividend["date"], taxes
@@ -91,49 +105,47 @@ class DividendHandler:
             {"value_pln": 0},
         )
 
+    def _save_records_to_gsheet(self, dividends: List[Dict[str, Any]]):
+        for index, received_dividend in enumerate(dividends[:1], 1):
+            self.save_record_to_gsheet(received_dividend, index)
+            self.sheet.execute_batch(value_input_option="USER_ENTERED")
+
+    def save_record_to_gsheet(self, received_dividend: Dict[str, Any], iterator: int):
+        print(received_dividend)
+        next_row_number = self.sheet.number_of_rows + iterator
+        self.sheet.batch_add_multiple_cells(
+            cell_list=[
+                (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
+                (next_row_number, "Broker", "Interactive Brokers"),
+                (next_row_number, "Ticker", received_dividend.get("ticker")),
+                (next_row_number, "Currency", received_dividend.get("currency")),
+                (next_row_number, "#", "1"),
+                (
+                    next_row_number,
+                    "Currency rate date - 1",
+                    f"=NBP_RATE_BEFORE(E{next_row_number};A{next_row_number})",
+                ),
+                (next_row_number, "Div before tax [CUR]", received_dividend.get("value_usd")),
+                (next_row_number, "Div before tax [PLN]", f"=G{next_row_number}*F{next_row_number}"),
+                (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
+                (next_row_number, "Tax paid %", "15%"),
+                (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
+                (
+                    next_row_number,
+                    "Tax paid [PLN]",
+                    f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})',
+                ),
+                (next_row_number, "Div after tax [CUR]", f"=G{next_row_number}+K{next_row_number}"),
+                (next_row_number, "Div after tax [PLN]", f"=H{next_row_number}+L{next_row_number}"),
+                (next_row_number, "Tax paid PL %", "4%"),
+                (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
+            ],
+            python_dict_indexing=False,
+        )
+
     def get_number_of_stock(self, ticker: str):
-        pass
-
-        # save_record_to_gsheet(received_dividend, index)
-        # sheet.execute_batch(value_input_option="USER_ENTERED")
-
-
-# def save_record_to_gsheet(received_dividend, iterator):
-#     print(received_dividend)
-#     next_row_number = sheet.number_of_rows + iterator
-#     sheet.batch_add_multiple_cells(
-#         cell_list=[
-#             (next_row_number, "Date", received_dividend.get("date").strftime("%d-%m-%Y")),
-#             (next_row_number, "Broker", "Interactive Brokers"),
-#             (next_row_number, "Ticker", received_dividend.get("name")),
-#             (next_row_number, "Currency", received_dividend.get("currency")),
-#             (
-#                 next_row_number,
-#                 "Currency rate date - 1",
-#                 f"=NBP_RATE_BEFORE(E{next_row_number};A{next_row_number})",
-#             ),
-#             (next_row_number, "Div before tax [CUR]", received_dividend.get("value_usd")),
-#             (next_row_number, "Div before tax [PLN]", f"=G{next_row_number}*F{next_row_number}"),
-#             (next_row_number, "Tax required in PL [PLN]", f"=0,19*H{next_row_number}"),
-#             (next_row_number, "Tax paid %", "15%"),
-#             (next_row_number, "Tax paid [CUR]", f"=-(J{next_row_number}*G{next_row_number})"),
-#             (
-#                 next_row_number,
-#                 "Tax paid [PLN]",
-#                 f'=JEŻELI(E{next_row_number}="PLN";K{next_row_number};K{next_row_number}*F{next_row_number})',
-#             ),
-#             (next_row_number, "Div after tax [CUR]", f"=G{next_row_number}+K{next_row_number}"),
-#             (next_row_number, "Div after tax [PLN]", f"=H{next_row_number}+L{next_row_number}"),
-#             (next_row_number, "Tax paid PL %", "4%"),
-#             (next_row_number, "Tax paid PL [PLN]", f"=O{next_row_number}*H{next_row_number}"),
-#         ],
-#         python_dict_indexing=False,
-# )
-# print("SAVED ROW NR", next_row_number)
-
-
-# value_input_option="USER_ENTERED" fix for single quote issue
-# sheet.execute_batch(value_input_option="USER_ENTERED")
+        for i in self.sheet.sheet_data:
+            print(i)
 
 
 # TODO how to get number of stocks - maybe some formula in ghseet?
