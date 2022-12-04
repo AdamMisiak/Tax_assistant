@@ -1,15 +1,24 @@
-from datetime import datetime, timedelta
 import csv
-import requests
 import re
-from settings import PLN_CURRENCY
+from datetime import datetime, timedelta
 from os.path import exists
-from typing import Optional, Dict, List, Any
+from typing import Any, Dict, List, Optional
+
+import requests
+
+from settings import PLN_CURRENCY
+
+
+class TaxHandler:
+    @staticmethod
+    def get_csv_report(file_name: str) -> List[List[str]]:
+        with open(file=file_name, mode="r", encoding="utf-8") as file:
+            csvreader = csv.reader(file)
+            return [row[0].replace('"', "").split("|") for row in csvreader]
+
 
 def get_csv_file_with_rates(year: str, path: str):
-    response = requests.get(
-        f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True
-    )
+    response = requests.get(f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True)
     if not exists(f"{path}/RATES{year}.csv"):
         file = open(f"{path}/RATES{year}.csv", "x")
         file.write(response.content.decode("ISO-8859-2"))
@@ -44,6 +53,7 @@ def get_previous_day_from_date(date: datetime) -> datetime:
         return date - timedelta(days=1)
     return date
 
+
 def get_currency_rate_for_date(currency: str, date: datetime) -> float:
     if currency == PLN_CURRENCY:
         return 1
@@ -51,7 +61,7 @@ def get_currency_rate_for_date(currency: str, date: datetime) -> float:
     date_str_format = date.strftime("%Y%m%d")
     rates = get_data_from_csv_file_with_rates(date.year)
     index_of_correct_date = get_index_of_correct_date(rates, date_str_format)
- 
+
     while index_of_correct_date is None:
         date -= timedelta(days=1)
         date_str_format = date.strftime("%Y%m%d")
@@ -60,12 +70,6 @@ def get_currency_rate_for_date(currency: str, date: datetime) -> float:
         index_of_correct_date = get_index_of_correct_date(rates, date_str_format)
     return rates[index_of_correct_date][currency]
 
+
 def get_index_of_correct_date(rates: List[Dict[str, Any]], date_str_format: str) -> Optional[int]:
-    return next(
-        (
-            index
-            for (index, row) in enumerate(rates)
-            if row["date"] == date_str_format
-        ),
-        None
-    )
+    return next((index for (index, row) in enumerate(rates) if row["date"] == date_str_format), None)

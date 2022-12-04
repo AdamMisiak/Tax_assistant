@@ -30,15 +30,11 @@ class OptionHandler:
         report_data = self.get_report_data()
         # return self._calculate_tax_to_pay(report_data.get("dividends"), report_data.get("taxes"))
 
-    def get_report_data(self) -> Dict[str, List[Dict[str, Any]]]:
-        reports = self.merge_csv_files()
-        print(reports)
-        # return {
-        #     "dividends": self.fetch_relevant_data(report, "Dividends"),
-        #     "taxes": self.fetch_relevant_data(report, "Withholding Tax"),
-        # }
+    def get_report_data(self) -> List[Dict[str, Any]]:
+        reports = self.merge_csv_report()
+        return self.fetch_relevant_data(reports, "OPT")
 
-    def merge_csv_files(self):
+    def merge_csv_report(self):
         rows = []
         files = list(filter(lambda file: file.startswith("STOCKS"), os.listdir("data")))
         for file in files:
@@ -55,17 +51,21 @@ class OptionHandler:
     def fetch_relevant_data(report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
         results = []
         for row in report:
-            if row[5] == filtered_field:
+            if row[1] == filtered_field:
                 record = {}
-                record["ticker"] = row[1]
-                record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
-                record["value_usd"] = float(row[4])
+                record["ticker"] = row[2]
+                record["date"] = datetime.strptime(row[3], "%Y%m%d")
+                record["amount"] = float(row[4])
                 record["currency"] = row[0]
+                record["price"] = round(float(row[5]), 2)
+                record["premium_usd"] = round(float(row[6]), 2)
                 record["currency_rate_d_1"] = get_currency_rate_for_date(
                     record["currency"], get_previous_day_from_date(record["date"])
                 )
-                record["value_pln"] = round(record["value_usd"] * record["currency_rate_d_1"], 2)
+                record["premium_pln"] = round(record["premium_usd"] * record["currency_rate_d_1"], 2)
                 results.append(record)
+                print(record)
+                print("----")
         return results
 
     def _calculate_tax_to_pay(self, dividends: List[Dict[str, Any]], taxes: List[Dict[str, Any]]) -> float:
