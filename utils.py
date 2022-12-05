@@ -44,6 +44,8 @@ def get_data_from_csv_file_with_rates(year: str) -> List[Dict[str, Any]]:
                 # "RUB": float(row[30].replace(",", ".")),
                 "CNY": float(row[34].replace(",", ".")),
             }
+            if row[30]:
+                result["RUB"] = float(row[30].replace(",", "."))
             rows.append(result)
     return rows
 
