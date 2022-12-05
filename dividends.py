@@ -21,7 +21,7 @@ load_dotenv()
 # changing only attributes in class
 
 
-class DividendHandler:
+class DividendsHandler:
     def __init__(self):
         credentials_json = {
             "type": os.getenv("type"),

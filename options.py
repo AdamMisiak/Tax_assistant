@@ -16,7 +16,7 @@ load_dotenv()
 # changing only attributes in class
 
 
-class OptionHandler:
+class OptionsHandler:
     def __init__(self):
         self.total_tax_to_paid_in_pln = 0
         self.tax_rate = 0.19
