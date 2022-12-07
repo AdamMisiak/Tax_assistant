@@ -10,6 +10,7 @@ from settings import PLN_CURRENCY
 
 
 class TaxHandler:
+    # TODO add year attribute?
     @staticmethod
     def get_csv_report(file_name: str) -> List[List[str]]:
         with open(file=file_name, mode="r", encoding="utf-8") as file:

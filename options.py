@@ -59,8 +59,6 @@ class OptionsHandler:
                 )
                 record["premium_pln"] = round(record["premium_usd"] * record["currency_rate_d_1"], 2)
                 results.append(record)
-                print(record)
-                print("----")
         return results
 
     def _calculate_tax_to_pay(self, options: List[Dict[str, Any]]) -> float:
