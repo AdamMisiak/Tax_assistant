@@ -10,20 +10,37 @@ from settings import PLN_CURRENCY
 
 
 class TaxHandler:
-    # TODO add year attribute?
+    def __init__(self):
+        self.year: str = 2022
+
+    def get_currency_rate_for_date(self, currency: str, date: datetime) -> float:
+        if currency == PLN_CURRENCY:
+            return 1
+        start_year = date.year
+        date_str_format = date.strftime("%Y%m%d")
+        rates = get_data_from_csv_file_with_rates(date.year)
+        index_of_correct_date = get_index_of_correct_date(rates, date_str_format)
+
+        while index_of_correct_date is None:
+            date -= timedelta(days=1)
+            date_str_format = date.strftime("%Y%m%d")
+            if date.year != start_year:
+                rates = get_data_from_csv_file_with_rates(date.year)
+            index_of_correct_date = get_index_of_correct_date(rates, date_str_format)
+        return rates[index_of_correct_date][currency]
+
     @staticmethod
     def get_csv_report(file_name: str) -> List[List[str]]:
         with open(file=file_name, mode="r", encoding="utf-8") as file:
             csvreader = csv.reader(file)
             return [row[0].replace('"', "").split("|") for row in csvreader]
 
-
-def get_csv_file_with_rates(year: str, path: str):
-    response = requests.get(f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{year}.csv", allow_redirects=True)
-    if not exists(f"{path}/RATES{year}.csv"):
-        file = open(f"{path}/RATES{year}.csv", "x")
-        file.write(response.content.decode("ISO-8859-2"))
-        file.close()
+    def get_csv_file_with_rates(self, path: str):
+        response = requests.get(f"https://nbp.pl/kursy/Archiwum/archiwum_tab_a_{self.year}.csv", allow_redirects=True)
+        if not exists(f"{path}/RATES{self.year}.csv"):
+            file = open(f"{path}/RATES{self.year}.csv", "x")
+            file.write(response.content.decode("ISO-8859-2"))
+            file.close()
 
 
 def get_data_from_csv_file_with_rates(year: str) -> List[Dict[str, Any]]:
