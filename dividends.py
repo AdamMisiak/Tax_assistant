@@ -1,7 +1,6 @@
 # pylint: disable=W0640
 # cell-var-from-loop
 
-import csv
 import os
 from datetime import datetime
 from typing import Any, Dict, List
@@ -10,19 +9,16 @@ from dotenv import load_dotenv
 
 import settings
 from gsheet import GoogleWorkbook
-from utils import get_currency_rate_for_date, get_previous_day_from_date
+from utils import TaxHandler
 
 # get data from: https://nbp.pl/kursy/Archiwum/archiwum_tab_a_2021.xls
+
 load_dotenv()
 
 
-# TODO create TaxHandler with some basic methods
-# TODO use calculate_tax_to_pay same method in every handler,
-# changing only attributes in class
-
-
-class DividendsHandler:
+class DividendsHandler(TaxHandler):
     def __init__(self):
+        super().__init__()
         credentials_json = {
             "type": os.getenv("type"),
             "project_id": os.getenv("project_id"),
@@ -43,8 +39,6 @@ class DividendsHandler:
             },
         )
         self.sheet = self.google_workbook.pull_sheet(os.getenv("tab_name"))
-        self.total_tax_to_paid_in_pln = 0
-        self.tax_rate = 0.19
 
     def calculate_tax_to_pay(self) -> float:
         report_data = self.get_report_data()
@@ -61,14 +55,7 @@ class DividendsHandler:
             "taxes": self.fetch_relevant_data(report, "Withholding Tax"),
         }
 
-    @staticmethod
-    def get_csv_report(file_name: str) -> List[List[str]]:
-        with open(file=file_name, mode="r", encoding="utf-8") as file:
-            csvreader = csv.reader(file)
-            return [row[0].replace('"', "").split("|") for row in csvreader]
-
-    @staticmethod
-    def fetch_relevant_data(report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
+    def fetch_relevant_data(self, report: List[List[str]], filtered_field: str) -> List[Dict[str, Any]]:
         results = []
         for row in report:
             if row[5] == filtered_field:
@@ -77,8 +64,8 @@ class DividendsHandler:
                 record["date"] = datetime.strptime(row[3].split(";")[0], "%Y%m%d")
                 record["value_usd"] = float(row[4])
                 record["currency"] = row[0]
-                record["currency_rate_d_1"] = get_currency_rate_for_date(
-                    record["currency"], get_previous_day_from_date(record["date"])
+                record["currency_rate_d_1"] = self.get_currency_rate_for_date(
+                    record["currency"], self.get_previous_day_from_date(record["date"])
                 )
                 record["value_pln"] = round(record["value_usd"] * record["currency_rate_d_1"], 2)
                 results.append(record)
