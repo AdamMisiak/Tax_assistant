@@ -19,7 +19,7 @@ class TaxHandler:
     def get_csv_report(file_name: str) -> List[List[str]]:
         with open(file=file_name, mode="r", encoding="utf-8") as file:
             csvreader = csv.reader(file)
-            return [row[0].replace('"', "").split("|") for row in csvreader]
+            return [row[0].replace('"', "").split("|") for row in csvreader if len(row) > 0]
 
     @staticmethod
     def get_previous_day_from_date(date: datetime) -> datetime:
