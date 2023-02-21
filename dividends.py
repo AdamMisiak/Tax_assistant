@@ -17,8 +17,8 @@ load_dotenv()
 
 
 class DividendsHandler(TaxHandler):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, year):
+        super().__init__(year)
         credentials_json = {
             "type": os.getenv("type"),
             "project_id": os.getenv("project_id"),
@@ -45,6 +45,7 @@ class DividendsHandler(TaxHandler):
         return self._calculate_tax_to_pay(report_data.get("dividends"), report_data.get("taxes"))
 
     def save_records_to_gsheet(self):
+        # TODO add date where script should start
         report_data = self.get_report_data()
         return self._save_records_to_gsheet(report_data.get("dividends"))
 

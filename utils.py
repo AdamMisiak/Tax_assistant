@@ -10,10 +10,10 @@ from settings import PLN_CURRENCY
 
 
 class TaxHandler:
-    def __init__(self):
+    def __init__(self, year):
         self.total_tax_to_paid_in_pln = 0
         self.tax_rate = 0.19
-        self.year: str = 2022
+        self.year: str = year
 
     @staticmethod
     def get_csv_report(file_name: str) -> List[List[str]]:
