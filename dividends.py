@@ -77,10 +77,18 @@ class DividendsHandler(TaxHandler):
             matching_paid_tax = self.get_matching_paid_tax(
                 received_dividend["ticker"], received_dividend["date"], taxes
             )
+            # TODO can be deleted soon, these stocks are only in 2022
+            if received_dividend["ticker"] == "SHLX":
+                self.tax_rate = 0.41
+            if received_dividend["ticker"] == "ETN":
+                self.tax_rate = 0.29
+            else:
+                self.tax_rate = 0.19
             tax_to_paid_in_pln = round(
                 self.tax_rate * received_dividend["value_pln"] + matching_paid_tax["value_pln"],
                 2,
             )
+            # TODO add some logging that there wasn't found matching tax record
             self.total_tax_to_paid_in_pln += tax_to_paid_in_pln
         return round(self.total_tax_to_paid_in_pln, 2)
 
