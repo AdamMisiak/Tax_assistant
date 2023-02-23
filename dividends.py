@@ -77,6 +77,7 @@ class DividendsHandler(TaxHandler):
             matching_paid_tax = self.get_matching_paid_tax(
                 received_dividend["ticker"], received_dividend["date"], taxes
             )
+            # TODO change names of the methods to _ private
             # TODO can be deleted soon, these stocks are only in 2022
             if received_dividend["ticker"] == "SHLX":
                 self.tax_rate = 0.41

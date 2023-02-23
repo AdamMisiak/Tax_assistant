@@ -50,6 +50,8 @@ class StocksHandler(TaxHandler):
             if transaction["amount"] < 0 and transaction["date"].year == self.year:
                 opening_transaction = self._find_opening_transactions(transaction, stocks)
                 profit_or_loss = round(transaction["value_pln"] + opening_transaction["value_pln"], 2)
+                self.total_revenue_in_pln += round(transaction["value_pln"], 2)
+                self.total_cost_in_pln += round(opening_transaction["value_pln"], 2)
                 self.total_tax_to_paid_in_pln += round(profit_or_loss * self.tax_rate, 2)
 
         return round(self.total_tax_to_paid_in_pln, 2)

@@ -8,14 +8,33 @@ stocks_handler = StocksHandler(year=year)
 dividends_handler = DividendsHandler(year=year)
 options_handler = OptionsHandler(year=year)
 
-total_stocks_tax_to_paid_in_pln = stocks_handler.calculate_tax_to_pay()
 total_dividends_tax_to_paid_in_pln = dividends_handler.calculate_tax_to_pay()
+
+total_stocks_tax_to_paid_in_pln = stocks_handler.calculate_tax_to_pay()
+total_stocks_revenue_in_pln = stocks_handler.total_revenue_in_pln
+total_stocks_cost_in_pln = stocks_handler.total_cost_in_pln
+
 total_options_tax_to_paid_in_pln = options_handler.calculate_tax_to_pay()
+total_options_revenue_in_pln = options_handler.total_revenue_in_pln
+total_options_cost_in_pln = options_handler.total_cost_in_pln
+
 total_tax = total_dividends_tax_to_paid_in_pln + total_stocks_tax_to_paid_in_pln + total_options_tax_to_paid_in_pln
 
 # dividends_handler.save_records_to_gsheet()
 
-print("SUMMARY:")
+print("REVENUE SUMMARY:")
+print(f"STK: {total_stocks_revenue_in_pln} PLN")
+print(f"OPT: {total_options_revenue_in_pln} PLN")
+print("---------")
+print("")
+
+print("COST SUMMARY:")
+print(f"STK: {total_stocks_cost_in_pln} PLN")
+print(f"OPT: {total_options_cost_in_pln} PLN")
+print("---------")
+print("")
+
+print("TAX SUMMARY:")
 print(f"DIV: {total_dividends_tax_to_paid_in_pln} PLN")
 print(f"STK: {total_stocks_tax_to_paid_in_pln} PLN")
 print(f"OPT: {total_options_tax_to_paid_in_pln} PLN")

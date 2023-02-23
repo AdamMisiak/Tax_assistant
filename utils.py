@@ -12,6 +12,8 @@ from settings import PLN_CURRENCY
 class TaxHandler:
     def __init__(self, year):
         self.total_tax_to_paid_in_pln = 0
+        self.total_revenue_in_pln = 0
+        self.total_cost_in_pln = 0
         self.tax_rate = 0.19
         self.year: str = year
 

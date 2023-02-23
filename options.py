@@ -47,6 +47,5 @@ class OptionsHandler(TaxHandler):
     def _calculate_tax_to_pay(self, options: List[Dict[str, Any]]) -> float:
         for option in options:
             if option["date"].year == self.year:
-                tax_to_paid_in_pln = round(self.tax_rate * option["premium_pln"], 2)
-                self.total_tax_to_paid_in_pln += tax_to_paid_in_pln
+                self.total_tax_to_paid_in_pln += round(option["premium_pln"] * self.tax_rate, 2)
         return round(self.total_tax_to_paid_in_pln, 2)
