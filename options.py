@@ -48,4 +48,9 @@ class OptionsHandler(TaxHandler):
         for option in options:
             if option["date"].year == self.year:
                 self.total_tax_to_paid_in_pln += round(option["premium_pln"] * self.tax_rate, 2)
+                if option["premium_pln"] > 0:
+                    self.total_revenue_in_pln += round(option["premium_pln"], 2)
+                elif option["premium_pln"] < 0:
+                    self.total_cost_in_pln += round(option["premium_pln"], 2)
+
         return round(self.total_tax_to_paid_in_pln, 2)
